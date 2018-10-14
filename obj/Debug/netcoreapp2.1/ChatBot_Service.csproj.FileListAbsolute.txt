@@ -1,0 +1,17 @@
+C:\Users\jacab\Documents\Proyectos\ChatBot_Compiler\ChatBot_Service\ChatBot_Service\bin\Debug\netcoreapp2.1\ChatBot_Service.deps.json
+C:\Users\jacab\Documents\Proyectos\ChatBot_Compiler\ChatBot_Service\ChatBot_Service\bin\Debug\netcoreapp2.1\ChatBot_Service.runtimeconfig.json
+C:\Users\jacab\Documents\Proyectos\ChatBot_Compiler\ChatBot_Service\ChatBot_Service\bin\Debug\netcoreapp2.1\ChatBot_Service.runtimeconfig.dev.json
+C:\Users\jacab\Documents\Proyectos\ChatBot_Compiler\ChatBot_Service\ChatBot_Service\bin\Debug\netcoreapp2.1\ChatBot_Service.dll
+C:\Users\jacab\Documents\Proyectos\ChatBot_Compiler\ChatBot_Service\ChatBot_Service\bin\Debug\netcoreapp2.1\ChatBot_Service.pdb
+C:\Users\jacab\Documents\Proyectos\ChatBot_Compiler\ChatBot_Service\ChatBot_Service\obj\Debug\netcoreapp2.1\ChatBot_Service.csprojAssemblyReference.cache
+C:\Users\jacab\Documents\Proyectos\ChatBot_Compiler\ChatBot_Service\ChatBot_Service\obj\Debug\netcoreapp2.1\ChatBot_Service.csproj.CoreCompileInputs.cache
+C:\Users\jacab\Documents\Proyectos\ChatBot_Compiler\ChatBot_Service\ChatBot_Service\obj\Debug\netcoreapp2.1\ChatBot_Service.RazorAssemblyInfo.cache
+C:\Users\jacab\Documents\Proyectos\ChatBot_Compiler\ChatBot_Service\ChatBot_Service\obj\Debug\netcoreapp2.1\ChatBot_Service.RazorAssemblyInfo.cs
+C:\Users\jacab\Documents\Proyectos\ChatBot_Compiler\ChatBot_Service\ChatBot_Service\obj\Debug\netcoreapp2.1\ChatBot_Service.AssemblyInfoInputs.cache
+C:\Users\jacab\Documents\Proyectos\ChatBot_Compiler\ChatBot_Service\ChatBot_Service\obj\Debug\netcoreapp2.1\ChatBot_Service.AssemblyInfo.cs
+C:\Users\jacab\Documents\Proyectos\ChatBot_Compiler\ChatBot_Service\ChatBot_Service\obj\Debug\netcoreapp2.1\ChatBot_Service.RazorTargetAssemblyInfo.cache
+C:\Users\jacab\Documents\Proyectos\ChatBot_Compiler\ChatBot_Service\ChatBot_Service\obj\Debug\netcoreapp2.1\ChatBot_Service.dll
+C:\Users\jacab\Documents\Proyectos\ChatBot_Compiler\ChatBot_Service\ChatBot_Service\obj\Debug\netcoreapp2.1\ChatBot_Service.pdb
+C:\Users\jacab\Documents\Proyectos\ChatBot_Compiler\ChatBot_Service\ChatBot_Service\bin\Debug\netcoreapp2.1\Irony.dll
+C:\Users\jacab\Documents\Proyectos\ChatBot_Compiler\ChatBot_Service\ChatBot_Service\bin\Debug\netcoreapp2.1\Irony.Interpreter.dll
+C:\Users\jacab\Documents\Proyectos\ChatBot_Compiler\ChatBot_Service\ChatBot_Service\obj\Debug\netcoreapp2.1\ChatBot_Service.csproj.CopyComplete
