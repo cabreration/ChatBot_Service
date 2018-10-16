@@ -18,7 +18,7 @@
       <HintPath>..\..\..\..\Herramientas\Irony.dll</HintPath>
     </Reference>
     <Reference Include="Irony.Interpreter">
-      <HintPath>..\..\..\..\repos\Practica2\Practica2\bin\Debug\Irony.Interpreter.dll</HintPath>
+      <HintPath>..\..\..\..\Herramientas\Irony.Interpreter.dll</HintPath>
     </Reference>
   </ItemGroup>
 
