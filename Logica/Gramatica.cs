@@ -178,9 +178,12 @@ namespace ChatBot_Service.Logica
                 | DECLARACION_ARREGLO
                 | ASIGNACION_POSICION;
 
-            PRINCIPAL.Rule = principal + dosPuntos + parentesisA + parentesisC + llaveA + LISTA_SENTENCIAS + llaveC
-                | principal + dosPuntos + parentesisA + identificador + dosPuntos + TIPO_DATO + parentesisC
-                + llaveA + LISTA_SENTENCIAS + llaveC;
+            PRINCIPAL.Rule = principal + dosPuntos + vacio + parentesisA + parentesisC + llaveA + LISTA_SENTENCIAS + llaveC
+                | principal + dosPuntos + TIPO_DATO + parentesisA + identificador + dosPuntos + TIPO_DATO + parentesisC
+                + llaveA + LISTA_SENTENCIAS + llaveC
+                | principal + dosPuntos + vacio + parentesisA + identificador + dosPuntos 
+                + TIPO_DATO + parentesisC + llaveA + LISTA_SENTENCIAS + llaveC
+                | principal + dosPuntos + TIPO_DATO + parentesisA + parentesisC + llaveA + LISTA_SENTENCIAS + llaveC;
 
             // Sintaxis de las Declaraciones
             TIPO_DATO.Rule = entero | doble | cadena | caracter | booleano;

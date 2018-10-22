@@ -46,9 +46,16 @@ namespace ChatBot_Service.Logica
                     break;
 
                 case "METODO":
+                    guardarProcedimiento(raiz);
                     break;
 
                 case "PRINCIPAL":
+                    try {
+                        guardarPrincipal(raiz);
+                    }
+                    catch (Exception e) {
+                        //guardar error semantico
+                    }
                     break;
 
                 case "ASIGNACION":
@@ -93,6 +100,80 @@ namespace ChatBot_Service.Logica
                     //capturar error semantico
                 }
             }
+        }
+
+        public void guardarPrincipal(ParseTreeNode root) {
+            if (Data.main != null)
+                throw new Exception("Ya existe un metodo main declarado");
+
+            string nombre = "main";
+            string tipo = null;
+            if (root.ChildNodes.Count == 3) {
+                if (root.ChildNodes[1].Term.Name.Equals("Void"))
+                    Data.main = new Procedimiento(nombre, "Void", root.ChildNodes[2]);
+                else {
+                    tipo = root.ChildNodes[1].ChildNodes[0].Term.Name;
+                    Data.main = new Procedimiento(nombre, tipo, root.ChildNodes[2]);
+                }
+            }
+            else if (root.ChildNodes.Count == 5) {
+                if (root.ChildNodes[1].Term.Name.Equals("Void"))
+                {
+                    Data.main = new Procedimiento(nombre, "Void", root.ChildNodes[4]);
+                    Simbolo aux = new Simbolo(root.ChildNodes[4].ChildNodes[0].Term.Name,
+                        root.ChildNodes[3].FindTokenAndGetText());
+                    Data.main.parametros.Add(aux);
+                }
+                else {
+                    tipo = root.ChildNodes[1].ChildNodes[0].Term.Name;
+                    Data.main = new Procedimiento(nombre, tipo, root.ChildNodes[4]);
+                    Simbolo aux = new Simbolo(root.ChildNodes[4].ChildNodes[0].Term.Name,
+                        root.ChildNodes[3].FindTokenAndGetText());
+                    Data.main.parametros.Add(aux);
+                }
+            }
+        }
+
+        public void guardarProcedimiento(ParseTreeNode root) {
+            string identificador = null;
+            string tipo = null;
+            ParseTreeNode sentencias = null;
+            Procedimiento meth = null;
+
+            identificador = root.ChildNodes[0].FindTokenAndGetText();
+            if (root.ChildNodes[1].Term.Name.Equals("Void"))
+                tipo = "Void";
+            else tipo = root.ChildNodes[1].ChildNodes[0].Term.Name;
+
+            if (root.ChildNodes.Count == 4) { //incluye parametros       
+                sentencias = root.ChildNodes[3];
+                List<Simbolo> parametros = obtenerParametros(root.ChildNodes[2]);
+                meth = new Procedimiento(tipo, identificador, sentencias, parametros);
+            }
+            else if (root.ChildNodes.Count == 3) { // no incluye parametros
+                sentencias = root.ChildNodes[2];
+                meth = new Procedimiento(tipo, identificador, sentencias);
+            }
+
+            try {
+                Data.insertarMetodo(meth);
+            }
+            catch (Exception e) {
+                //guardar error semantico
+            }
+        }
+
+        public List<Simbolo> obtenerParametros(ParseTreeNode root) {
+            List<Simbolo> retorno = new List<Simbolo>();
+
+            foreach (ParseTreeNode hijo in root.ChildNodes) {
+                string id = hijo.ChildNodes[0].FindTokenAndGetText();
+                string tipo = hijo.ChildNodes[1].ChildNodes[0].Term.Name;
+                Simbolo aux = new Simbolo(tipo, id);
+
+                retorno.Add(aux);
+            }
+            return retorno;
         }
     }
 }

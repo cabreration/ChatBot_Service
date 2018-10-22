@@ -29,5 +29,9 @@ namespace ChatBot_Service.Global
             this.root = root;
             this.parametros = parametros;
         }
+
+        public void agregarParametro(Simbolo parametro) {
+            parametros.Add(parametro);
+        }
     }
 }
