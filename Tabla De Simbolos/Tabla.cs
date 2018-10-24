@@ -32,6 +32,13 @@ namespace ChatBot_Service.Tabla_De_Simbolos
             this.elementos.Add(simbolo.identificador, simbolo);
         }
 
+        public void guardarArreglo(Arreglo array) {
+            if (contiene(array.identificador))
+                throw new Exception("La variable ha sido declarada en el mismo ambito anteriormente");
+
+            this.elementos.Add(array.identificador, array);
+        }
+
         public void insertarConValor(Simbolo simbolo) {
             if (contiene(simbolo.identificador))
                 throw new Exception("La variable ha sido declarada en el mismo ambito anteriormente");
@@ -146,6 +153,17 @@ namespace ChatBot_Service.Tabla_De_Simbolos
                 luke = darth;
                 darth = darth.padre;
             }
+        }
+
+        public Arreglo obtenerArreglo(string identificador) {
+            if (!(contiene(identificador)))
+                throw new Exception("La variable " + identificador + " no existe en el contexto actual");
+
+            object aux = elementos[identificador];
+            if (!(aux is Arreglo))
+                throw new Exception("La variable a la que intenta acceder no representa un arreglo");
+
+            return (Arreglo)aux;
         }
     }
 }

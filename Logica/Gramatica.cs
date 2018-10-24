@@ -200,7 +200,7 @@ namespace ChatBot_Service.Logica
             DECLARACION_ARREGLO.Rule = identificador + dosPuntos + TIPO_DATO
                 + corcheteA + EXPRESION + corcheteC + finSentencia
                 | identificador + dosPuntos + TIPO_DATO + corcheteA + EXPRESION + corcheteC
-                + asignacion + ASIGNACION_ARREGLO;
+                + asignacion + ASIGNACION_ARREGLO + finSentencia;
 
             LISTA_DATOS.Rule = MakePlusRule(LISTA_DATOS, coma, EXPRESION_LOGICA);
 

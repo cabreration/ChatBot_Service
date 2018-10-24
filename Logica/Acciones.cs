@@ -59,12 +59,15 @@ namespace ChatBot_Service.Logica
                     break;
 
                 case "ASIGNACION":
+                    actualizarValor(raiz, Data.ambitoGlobal);
                     break;
 
                 case "DECLARACION_ARREGLO":
+                    guardarArreglo(raiz, Data.ambitoGlobal);
                     break;
 
                 case "ASIGNACION_POSICION":
+                    asignarAPosicion(raiz, Data.ambitoGlobal);
                     break;
             }
         }
@@ -89,11 +92,13 @@ namespace ChatBot_Service.Logica
                 try
                 {
                     string tipo = root.ChildNodes[1].ChildNodes[0].Term.Name;
-                    object valor = null; //capturar valor
+                    object valor = obtenerValor(root.ChildNodes[3]); //capturar valor
+                    if (valor is string)
+                        valor = limpiarCadena((string)valor);
                     foreach (ParseTreeNode id in root.ChildNodes[0].ChildNodes)
                     {
                         string name = id.FindTokenAndGetText();
-
+                        Simbolo aux = new Simbolo(tipo, name, valor);
                     }
                 }
                 catch (Exception e) {
@@ -175,5 +180,104 @@ namespace ChatBot_Service.Logica
             }
             return retorno;
         }
+
+        public void actualizarValor(ParseTreeNode root, Tabla ambito) {
+            string id = root.ChildNodes[0].FindTokenAndGetText(); //obtenemos el identificador
+            object valor = obtenerValor(root.ChildNodes[2]); // debemos obtener el valor
+
+            try {
+                ambito.actualizarValor(id, valor);
+            }
+            catch (Exception e) {
+                //guardar error semantico
+            }
+        }
+
+        public void guardarArreglo(ParseTreeNode root, Tabla ambito) {
+
+            int tamanio = (int)obtenerValor(root.ChildNodes[2]);
+            string identificador = root.ChildNodes[0].FindTokenAndGetText();
+            string tipo = root.ChildNodes[1].ChildNodes[0].Term.Name;
+            Arreglo array = new Arreglo(tamanio, identificador, tipo);
+
+            try
+            {
+                if (root.ChildNodes.Count == 5)              
+                    guardarConValorArreglo(root.ChildNodes[4].ChildNodes[0], array, ambito);
+
+                ambito.guardarArreglo(array);                   
+            }
+            catch (Exception e)
+            {
+                //guardar error semantico
+            }
+            
+        }
+
+        public object obtenerValor(ParseTreeNode root) {
+            return null;
+        }
+
+        public void guardarConValorArreglo(ParseTreeNode root, Arreglo array, Tabla ambito) {
+            if (root.Term.Name.Equals("LISTA_DATOS"))
+            {
+                if (root.ChildNodes.Count != array.size)
+                    throw new Exception("Las dimensiones del arreglo no coinciden con los valores declarados");
+
+                object valor;
+                int count = 0;
+                foreach (ParseTreeNode val in root.ChildNodes) {
+                    valor = obtenerValor(val);
+                    if (valor is string)
+                        valor = limpiarCadena((string)valor);
+                    array.insertarEnIndice(count, valor);
+                    count++;
+                } 
+            }
+            else
+            {
+                string identificador = root.FindTokenAndGetText();
+                try {
+                    Arreglo auxiliar = ambito.obtenerArreglo(identificador);
+                    if (auxiliar.size != array.size)
+                        throw new Exception("El tamanio de los arreglos que intenta igualar no coincide");
+
+                    for (int i = 0; i < auxiliar.size; i++)
+                    {
+                        array.insertarEnIndice(i, auxiliar.array[i]);
+                    }
+                }
+                catch (Exception e)
+                {
+                    //guardar error semantico
+                }
+            }
+        }
+
+        public void asignarAPosicion(ParseTreeNode raiz, Tabla ambito) {
+            string identificador = raiz.ChildNodes[0].FindTokenAndGetText();
+            int indice;
+            object valor;
+
+            try
+            {
+                Arreglo aux = ambito.obtenerArreglo(identificador);
+                indice = (int)obtenerValor(raiz.ChildNodes[1]);
+                valor = obtenerValor(raiz.ChildNodes[3]);
+                if (valor is string)
+                    valor = limpiarCadena((string)valor);
+                aux.insertarEnIndice(indice, valor);
+            }
+            catch (Exception e)
+            {
+                //guardar error semantico
+            }
+        }
+
+        public string limpiarCadena(string cadena)
+        {
+            return cadena.Substring(1, cadena.Length - 2);
+        }
+
     }
 }

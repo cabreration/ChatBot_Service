@@ -22,7 +22,25 @@ namespace ChatBot_Service.Tabla_De_Simbolos
         {
             this.tipo = tipo;
             this.identificador = identificador;
-            this.valor = null;
+
+            switch (tipo)
+            {
+                case "Int":
+                    valor = 0;
+                    break;
+                case "Double":
+                    valor = 0.0;
+                    break;
+                case "String":
+                    valor = "";
+                    break;
+                case "Char":
+                    valor = '\u0000';
+                    break;
+                case "Boolean":
+                    valor = false;
+                    break;
+            }
         }
 
         public Simbolo(string tipo, string identificador, object valor)
