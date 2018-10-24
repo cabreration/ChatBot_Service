@@ -92,7 +92,7 @@ namespace ChatBot_Service.Logica
                 try
                 {
                     string tipo = root.ChildNodes[1].ChildNodes[0].Term.Name;
-                    object valor = obtenerValor(root.ChildNodes[3]); //capturar valor
+                    object valor = obtenerValor(root.ChildNodes[3], ambito); //capturar valor
                     if (valor is string)
                         valor = limpiarCadena((string)valor);
                     foreach (ParseTreeNode id in root.ChildNodes[0].ChildNodes)
@@ -183,7 +183,7 @@ namespace ChatBot_Service.Logica
 
         public void actualizarValor(ParseTreeNode root, Tabla ambito) {
             string id = root.ChildNodes[0].FindTokenAndGetText(); //obtenemos el identificador
-            object valor = obtenerValor(root.ChildNodes[2]); // debemos obtener el valor
+            object valor = obtenerValor(root.ChildNodes[2], ambito); // debemos obtener el valor
 
             try {
                 ambito.actualizarValor(id, valor);
@@ -195,7 +195,7 @@ namespace ChatBot_Service.Logica
 
         public void guardarArreglo(ParseTreeNode root, Tabla ambito) {
 
-            int tamanio = (int)obtenerValor(root.ChildNodes[2]);
+            int tamanio = (int)obtenerValor(root.ChildNodes[2], ambito);
             string identificador = root.ChildNodes[0].FindTokenAndGetText();
             string tipo = root.ChildNodes[1].ChildNodes[0].Term.Name;
             Arreglo array = new Arreglo(tamanio, identificador, tipo);
@@ -214,7 +214,33 @@ namespace ChatBot_Service.Logica
             
         }
 
-        public object obtenerValor(ParseTreeNode root) {
+        public object obtenerValor(ParseTreeNode root, Tabla ambito) {
+            if (root.Term.Name.Equals("EXPRESION_LOGICA"))
+            {
+                if (root.ChildNodes.Count == 3)
+                    return logica3(root, ambito);
+                else if (root.ChildNodes.Count == 2)
+                    return logica2(root, ambito);
+                else if (root.ChildNodes.Count == 1)
+                    return obtenerValor(root.ChildNodes[0], ambito);
+            }
+            else if (root.Term.Name.Equals("EXPRESION_RELACIONAL")) {
+                if (root.ChildNodes.Count == 3)
+                    return relacional(root, ambito);
+                else if (root.ChildNodes.Count == 1)
+                    return obtenerValor(root.ChildNodes[0], ambito);
+            }
+            else if (root.Term.Name.Equals("EXPRESION")) {
+                if (root.ChildNodes.Count == 3) {
+                    return aritmetica3(root, ambito);
+                }
+                else if (root.ChildNodes.Count == 2) {
+                    return aritmetica2(root, ambito);
+                }
+                else if (root.ChildNodes.Count == 1) {
+                    return aritmetica1(root, ambito);
+                }
+            }
             return null;
         }
 
@@ -227,7 +253,7 @@ namespace ChatBot_Service.Logica
                 object valor;
                 int count = 0;
                 foreach (ParseTreeNode val in root.ChildNodes) {
-                    valor = obtenerValor(val);
+                    valor = obtenerValor(val, ambito);
                     if (valor is string)
                         valor = limpiarCadena((string)valor);
                     array.insertarEnIndice(count, valor);
@@ -262,8 +288,8 @@ namespace ChatBot_Service.Logica
             try
             {
                 Arreglo aux = ambito.obtenerArreglo(identificador);
-                indice = (int)obtenerValor(raiz.ChildNodes[1]);
-                valor = obtenerValor(raiz.ChildNodes[3]);
+                indice = (int)obtenerValor(raiz.ChildNodes[1], ambito);
+                valor = obtenerValor(raiz.ChildNodes[3], ambito);
                 if (valor is string)
                     valor = limpiarCadena((string)valor);
                 aux.insertarEnIndice(indice, valor);
@@ -279,5 +305,186 @@ namespace ChatBot_Service.Logica
             return cadena.Substring(1, cadena.Length - 2);
         }
 
+        public bool logica3(ParseTreeNode root, Tabla ambito) {
+            object valor1 = null;
+            object valor2 = null;
+            bool retorno = false;
+
+            try {
+                valor1 = obtenerValor(root.ChildNodes[0], ambito);
+                valor2 = obtenerValor(root.ChildNodes[2], ambito);
+
+                if (valor1 == null || valor2 == null) return false;
+
+                if (root.ChildNodes[1].Term.Name.Equals("||"))
+                    retorno = Calculadora.or(valor1, valor2);
+                else if (root.ChildNodes[1].Term.Name.Equals("&&"))
+                    retorno = Calculadora.and(valor1, valor2);
+                else if (root.ChildNodes[1].Term.Name.Equals("|&"))
+                    retorno = Calculadora.xor(valor1, valor2);
+            }
+            catch (Exception e) {
+                //guardar error semantico
+            }
+
+            return retorno;
+        }
+
+        public bool logica2(ParseTreeNode root, Tabla ambito) {
+            bool retorno = false;
+            if (root.ChildNodes[0].Term.Name.Equals("!"))
+            {
+                try
+                {
+                    object valor = obtenerValor(root.ChildNodes[1], ambito);
+                    retorno = Calculadora.negacion(valor);
+                }
+                catch (Exception e)
+                {
+                    //guardar error semantico
+                }
+            }
+            else { }
+
+            return retorno;
+        }
+
+        public bool relacional(ParseTreeNode root, Tabla ambito) {
+            bool retorno = false;
+            object arg1 = null;
+            object arg2 = null;
+
+            try
+            {
+                arg1 = obtenerValor(root.ChildNodes[0], ambito);
+                arg2 = obtenerValor(root.ChildNodes[2], ambito);
+
+                switch (root.ChildNodes[1].ChildNodes[0].Term.Name)
+                {
+                    case "<":
+                        retorno = Calculadora.menorQue(arg1, arg2);
+                        break;
+
+                    case ">":
+                        retorno = Calculadora.mayorQue(arg1, arg2);
+                        break;
+
+                    case "<=":
+                        retorno = Calculadora.menorIgual(arg1, arg2);
+                        break;
+
+                    case ">=":
+                        retorno = Calculadora.mayorIgual(arg1, arg2);
+                        break;
+
+                    case "!=":
+                        retorno = Calculadora.noEquivalente(arg1, arg2);
+                        break;
+
+                    case "==":
+                        retorno = Calculadora.equivalente(arg1, arg2);
+                        break;
+                }
+            }
+            catch (Exception e) {
+                //guardar error semantico
+            }         
+            return retorno;
+        }
+
+        public object aritmetica3(ParseTreeNode root, Tabla ambito) {
+            object retorno = null;
+            object arg1 = null;
+            object arg2 = null;
+            try {
+
+                arg1 = obtenerValor(root.ChildNodes[0], ambito);
+                arg2 = obtenerValor(root.ChildNodes[2], ambito);
+
+                switch (root.ChildNodes[1].Term.Name)
+                {
+                    case "+":
+                        retorno = Calculadora.sumar(arg1, arg2);
+                        break;
+
+                    case "-":
+                        retorno = Calculadora.restar(arg1, arg2);
+                        break;
+
+                    case "*":
+                        retorno = Calculadora.multiplicar(arg1, arg2);
+                        break;
+
+                    case "/":
+                        retorno = Calculadora.dividir(arg1, arg2);
+                        break;
+
+                    case "^":
+                        retorno = Calculadora.elevar(arg1, arg2);
+                        break;
+
+                    case "%":
+                        retorno = Calculadora.modular(arg1, arg2);
+                        break;
+                }
+
+            }
+            catch (Exception e) {
+                //guardar error semantico
+            }
+            return retorno;
+        }
+
+        public object aritmetica1(ParseTreeNode root, Tabla ambito) {
+            object retorno = null;
+
+            try
+            {
+                switch (root.Term.Name)
+                {
+                    case "EXPRESION_LOGICA":
+                        retorno = obtenerValor(root, ambito);
+                        break;
+
+                    case "identificador":
+                        retorno = ambito.obtenerValor(root.FindTokenAndGetText());
+                        break;
+
+                    case "LLAMADA":
+                        break;
+
+                    case "OBTENER_USUARIO":
+                        break;
+
+                    case "verdadero":
+                        return true;
+
+                    case "falso":
+                        return false;                     
+
+                    case "cadena":
+                        retorno = limpiarCadena((string)root.FindTokenAndGetText());
+                        break;
+
+                    case "caracter":
+                        retorno = root.FindTokenAndGetText();
+                        break;
+
+                    case "numero":
+                        double eval = Convert.ToDouble(root.FindTokenAndGetText());
+                        if (eval % 1 == 0) return Convert.ToInt32(eval);
+                        else return eval;
+                }
+            }
+            catch (Exception e) {
+                // guardar error semantico
+            }
+            return retorno;
+        }
+
+        public object aritmetica2(ParseTreeNode root, Tabla ambito) {
+            object retorno = null;
+            return retorno;
+        }
     }
 }
