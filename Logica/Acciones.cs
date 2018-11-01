@@ -30,6 +30,9 @@ namespace ChatBot_Service.Logica
                             reconocer(root);
                     break;
 
+                case "IMPORT":
+                    break;
+
                 case "LISTA_ACCIONES":
                     if (raiz.ChildNodes.Count == 1)
                         foreach (ParseTreeNode root in raiz.ChildNodes)
@@ -93,8 +96,6 @@ namespace ChatBot_Service.Logica
                 {
                     string tipo = root.ChildNodes[1].ChildNodes[0].Term.Name;
                     object valor = obtenerValor(root.ChildNodes[3], ambito); //capturar valor
-                    if (valor is string)
-                        valor = limpiarCadena((string)valor);
                     foreach (ParseTreeNode id in root.ChildNodes[0].ChildNodes)
                     {
                         string name = id.FindTokenAndGetText();
@@ -254,8 +255,6 @@ namespace ChatBot_Service.Logica
                 int count = 0;
                 foreach (ParseTreeNode val in root.ChildNodes) {
                     valor = obtenerValor(val, ambito);
-                    if (valor is string)
-                        valor = limpiarCadena((string)valor);
                     array.insertarEnIndice(count, valor);
                     count++;
                 } 
@@ -290,8 +289,6 @@ namespace ChatBot_Service.Logica
                 Arreglo aux = ambito.obtenerArreglo(identificador);
                 indice = (int)obtenerValor(raiz.ChildNodes[1], ambito);
                 valor = obtenerValor(raiz.ChildNodes[3], ambito);
-                if (valor is string)
-                    valor = limpiarCadena((string)valor);
                 aux.insertarEnIndice(indice, valor);
             }
             catch (Exception e)
@@ -330,6 +327,7 @@ namespace ChatBot_Service.Logica
             return retorno;
         }
 
+        // no esta terminada todavia
         public bool logica2(ParseTreeNode root, Tabla ambito) {
             bool retorno = false;
             if (root.ChildNodes[0].Term.Name.Equals("!"))
@@ -435,6 +433,7 @@ namespace ChatBot_Service.Logica
             return retorno;
         }
 
+        //no esta terminada
         public object aritmetica1(ParseTreeNode root, Tabla ambito) {
             object retorno = null;
 
@@ -471,9 +470,14 @@ namespace ChatBot_Service.Logica
                         break;
 
                     case "numero":
-                        double eval = Convert.ToDouble(root.FindTokenAndGetText());
-                        if (eval % 1 == 0) return Convert.ToInt32(eval);
-                        else return eval;
+                        try {
+                            int entero = Convert.ToInt32(root.FindTokenAndGetText());
+                            return entero;
+                        }
+                        catch {
+                            double doble = Convert.ToDouble(root.FindTokenAndGetText());
+                            return doble;
+                        }
                 }
             }
             catch (Exception e) {
@@ -482,9 +486,39 @@ namespace ChatBot_Service.Logica
             return retorno;
         }
 
+        // no esta terminada
         public object aritmetica2(ParseTreeNode root, Tabla ambito) {
             object retorno = null;
             return retorno;
+        }
+
+        public Object While(ParseTreeNode root, Tabla ambito)
+        {
+
+            try
+            {
+                if (root.ChildNodes.Count == 4)
+                {
+                    bool condicion = (bool)obtenerValor(root.ChildNodes[1].ChildNodes[0], ambito);
+                    while (condicion)
+                    {
+                        //Object retorno = ejecutarSentencias(root.ChildNodes[2], ambito);
+                        condicion = (bool)obtenerValor(root.ChildNodes[1].ChildNodes[0], ambito);
+                        ambito.escalarAmbito();
+                        Tabla padre = ambito.padre;
+                        ambito = new Tabla(padre);
+                        ambito.heredar();
+                        //if (retorno != null)
+                        //  return retorno;
+                    }
+                }
+                else if (root.ChildNodes.Count == 3) { }
+            }
+            catch (Exception e)
+            {
+                //guardar error semantico
+            }
+            return null;
         }
     }
 }

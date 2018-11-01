@@ -2,7 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ChatBot_Service.Logica;
+using Irony.Parsing;
+using Irony.Ast;
 using Microsoft.AspNetCore.Mvc;
+using System.Net.Http;
+using Newtonsoft.Json.Linq;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -29,9 +34,19 @@ namespace ChatBot_Service.Controladores
 
         // POST api/<controller>
         [HttpPost]
-        public void Post([FromBody]string value)
+        public string Post([FromBody] string value)
         {
-            string value2 = value;
+            string codigo = value;
+            // aqui vamos a analizar el codigo
+            // se va a regresar una cadena en formato json para ser parseada por el ide y sacar tanto los print
+            // como los errores
+            Gramatica grammar = new Gramatica();
+            LanguageData lenguaje = new LanguageData(grammar);
+            Parser parser = new Parser(lenguaje);
+            ParseTree arbol = parser.Parse(codigo);
+            
+            //ParseTreeNode root = arbol.Root;
+            return "{ \"Errores\" : [ \"uno\", \"dos\" ], \"Impresiones\": [\"tres\", \"cuatro\"]}";
         }
 
         // PUT api/<controller>/5

@@ -113,7 +113,6 @@ namespace ChatBot_Service.Logica
 
             NonTerminal INICIO = new NonTerminal("INICIO");
             NonTerminal DECLARACION = new NonTerminal("DECLARACION");
-            NonTerminal METODO = new NonTerminal("METODO");
             NonTerminal PRINCIPAL = new NonTerminal("PRINCIPAL");
             NonTerminal ASIGNACION = new NonTerminal("ASIGNACION");
             NonTerminal WHILE = new NonTerminal("WHILE");
@@ -153,6 +152,7 @@ namespace ChatBot_Service.Logica
             NonTerminal LISTA_CASE = new NonTerminal("LISTA_CASE");
             NonTerminal VALOR = new NonTerminal("VALOR");
             NonTerminal BREAK = new NonTerminal("BREAK");
+            NonTerminal OPCION_SENTENCIAS = new NonTerminal("OPCION_SENTENCIAS");
 
             #endregion
 
@@ -172,18 +172,18 @@ namespace ChatBot_Service.Logica
             LISTA_ACCIONES.Rule = MakePlusRule(LISTA_ACCIONES, ACCION);
 
             ACCION.Rule = DECLARACION
-                | METODO
+                | PROCEDIMIENTO
                 | PRINCIPAL
                 | ASIGNACION
                 | DECLARACION_ARREGLO
                 | ASIGNACION_POSICION;
 
-            PRINCIPAL.Rule = principal + dosPuntos + vacio + parentesisA + parentesisC + llaveA + LISTA_SENTENCIAS + llaveC
+            PRINCIPAL.Rule = principal + dosPuntos + vacio + parentesisA + parentesisC + llaveA + OPCION_SENTENCIAS + llaveC
                 | principal + dosPuntos + TIPO_DATO + parentesisA + identificador + dosPuntos + TIPO_DATO + parentesisC
-                + llaveA + LISTA_SENTENCIAS + llaveC
+                + llaveA + OPCION_SENTENCIAS + llaveC
                 | principal + dosPuntos + vacio + parentesisA + identificador + dosPuntos 
-                + TIPO_DATO + parentesisC + llaveA + LISTA_SENTENCIAS + llaveC
-                | principal + dosPuntos + TIPO_DATO + parentesisA + parentesisC + llaveA + LISTA_SENTENCIAS + llaveC;
+                + TIPO_DATO + parentesisC + llaveA + OPCION_SENTENCIAS + llaveC
+                | principal + dosPuntos + TIPO_DATO + parentesisA + parentesisC + llaveA + OPCION_SENTENCIAS + llaveC;
 
             // Sintaxis de las Declaraciones
             TIPO_DATO.Rule = entero | doble | cadena | caracter | booleano;
@@ -212,19 +212,21 @@ namespace ChatBot_Service.Logica
 
             //Sintaxis de Metodos y Funciones
             PROCEDIMIENTO.Rule = identificador + dosPuntos + TIPO_DATO
-                + parentesisA + LISTA_PARAMETROS + parentesisC + llaveA + LISTA_SENTENCIAS + llaveC
+                + parentesisA + LISTA_PARAMETROS + parentesisC + llaveA + OPCION_SENTENCIAS + llaveC
                 | identificador + dosPuntos + vacio
-                + parentesisA + LISTA_PARAMETROS + parentesisC + llaveA + LISTA_SENTENCIAS + llaveC
+                + parentesisA + LISTA_PARAMETROS + parentesisC + llaveA + OPCION_SENTENCIAS + llaveC
                 | identificador + dosPuntos + TIPO_DATO
-                + parentesisA + parentesisC + llaveA + LISTA_SENTENCIAS + llaveC
+                + parentesisA + parentesisC + llaveA + OPCION_SENTENCIAS + llaveC
                 | identificador + dosPuntos + vacio
-                + parentesisA + parentesisC + llaveA + LISTA_SENTENCIAS + llaveC;
+                + parentesisA + parentesisC + llaveA + OPCION_SENTENCIAS + llaveC;
 
             PARAMETRO.Rule = identificador + dosPuntos + TIPO_DATO;
 
             LISTA_PARAMETROS.Rule = MakePlusRule(LISTA_PARAMETROS, coma, PARAMETRO);
 
             LISTA_SENTENCIAS.Rule = MakePlusRule(LISTA_SENTENCIAS, SENTENCIA);
+
+            OPCION_SENTENCIAS.Rule = LISTA_SENTENCIAS | Empty;
 
             SENTENCIA.Rule = DECLARACION
                 | ASIGNACION
@@ -255,6 +257,9 @@ namespace ChatBot_Service.Logica
 
             ELSE.Rule = sino + llaveA + LISTA_SENTENCIAS + llaveC
                 | sino + llaveA + llaveC;
+
+            //Break
+            BREAK.Rule = quebrar | Empty;
 
             //While
             WHILE.Rule = mientras + parentesisA + EXPRESION_LOGICA + parentesisC 
@@ -295,6 +300,9 @@ namespace ChatBot_Service.Logica
                 | defecto + dosPuntos + LISTA_SENTENCIAS
                 | defecto + dosPuntos + quebrar
                 | defecto + dosPuntos;
+
+            //Llamadas
+            LLAMADA.Rule = identificador + parentesisA + parentesisC;
 
             // Expresiones
             EXPRESION_LOGICA.Rule = EXPRESION_LOGICA + and + EXPRESION_LOGICA
