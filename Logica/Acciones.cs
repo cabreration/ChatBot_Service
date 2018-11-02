@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using ChatBot_Service.Global;
@@ -10,38 +11,45 @@ namespace ChatBot_Service.Logica
 {
     public class Acciones
     {
-        public void reconocer(ParseTreeNode raiz) {
+        public void reconocer(ParseTreeNode raiz, bool actual) {
 
             switch (raiz.Term.Name) {
 
                 case "INICIO":
                     if (raiz.ChildNodes.Count == 2)
                     {
-                        reconocer(raiz.ChildNodes[0]);
-                        reconocer(raiz.ChildNodes[1]);
+                        reconocer(raiz.ChildNodes[0], actual);
+                        reconocer(raiz.ChildNodes[1], actual);
                     }
                     else
-                        reconocer(raiz.ChildNodes[0]);
+                        reconocer(raiz.ChildNodes[0], actual);
                     break;
 
                 case "ENCABEZADO":
-                    if (raiz.ChildNodes.Count == 1)
-                        foreach (ParseTreeNode root in raiz.ChildNodes)
-                            reconocer(root);
+                    foreach (ParseTreeNode root in raiz.ChildNodes)
+                        reconocer(root, actual);
                     break;
 
                 case "IMPORT":
+                    try
+                    {
+                        string archivo = limpiarCadena(raiz.ChildNodes[1].FindTokenAndGetText());
+                        importar(archivo);
+                    }
+                    catch (Exception e)
+                    {
+                        //guardar error semantico
+                    }
                     break;
 
                 case "LISTA_ACCIONES":
-                    if (raiz.ChildNodes.Count == 1)
-                        foreach (ParseTreeNode root in raiz.ChildNodes)
-                            reconocer(root);
+                    foreach (ParseTreeNode root in raiz.ChildNodes)
+                        reconocer(root, actual);
                     break;
 
                 case "ACCION":
                     if (raiz.ChildNodes.Count == 1)
-                        reconocer(raiz.ChildNodes[0]);
+                        reconocer(raiz.ChildNodes[0], actual);
                     break;
 
                 case "DECLARACION":
@@ -54,7 +62,8 @@ namespace ChatBot_Service.Logica
 
                 case "PRINCIPAL":
                     try {
-                        guardarPrincipal(raiz);
+                        if (actual)
+                            guardarPrincipal(raiz);
                     }
                     catch (Exception e) {
                         //guardar error semantico
@@ -62,7 +71,10 @@ namespace ChatBot_Service.Logica
                     break;
 
                 case "ASIGNACION":
-                    actualizarValor(raiz, Data.ambitoGlobal);
+                    if (raiz.ChildNodes[2].Term.Name.Equals("EXPRESION_LOGICA"))
+                        actualizarValor(raiz, Data.ambitoGlobal);
+                    else if (raiz.ChildNodes[2].Term.Name.Equals("LISTA_DATOS"))
+                    { }
                     break;
 
                 case "DECLARACION_ARREGLO":
@@ -72,6 +84,19 @@ namespace ChatBot_Service.Logica
                 case "ASIGNACION_POSICION":
                     asignarAPosicion(raiz, Data.ambitoGlobal);
                     break;
+
+                case "DINCREMENTO":
+                    if (raiz.ChildNodes[1].Term.Name.Equals("++"))
+                        incrementar(raiz.ChildNodes[0].FindTokenAndGetText(),
+                            Data.ambitoGlobal);
+                    else if (raiz.ChildNodes[1].Term.Name.Equals("--"))
+                        decrementar(raiz.ChildNodes[0].FindTokenAndGetText(),
+                            Data.ambitoGlobal);
+                    break;
+
+                case "FUNCION_PRINT":
+                    Imprimir(raiz.ChildNodes[1], Data.ambitoGlobal);
+                    break;
             }
         }
 
@@ -79,6 +104,13 @@ namespace ChatBot_Service.Logica
             if (root.ChildNodes.Count == 2) // solo declaracion
             {
                 string tipo = root.ChildNodes[1].ChildNodes[0].Term.Name;
+                if (root.ChildNodes[0].Term.Name.Equals("identificador"))
+                {
+                    string nombre = root.ChildNodes[0].FindTokenAndGetText();
+                    ambito.insertarSinValor(new Simbolo(tipo, nombre));
+                }
+
+
                 foreach (ParseTreeNode id in root.ChildNodes[0].ChildNodes) {
                     string name = id.FindTokenAndGetText();
                     try
@@ -96,10 +128,19 @@ namespace ChatBot_Service.Logica
                 {
                     string tipo = root.ChildNodes[1].ChildNodes[0].Term.Name;
                     object valor = obtenerValor(root.ChildNodes[3], ambito); //capturar valor
+
+                    if (root.ChildNodes[0].Term.Name.Equals("identificador"))
+                    {
+                        string nombre = root.ChildNodes[0].FindTokenAndGetText();
+                        Simbolo normal = new Simbolo(tipo, nombre, valor);
+                        ambito.insertarConValor(normal);
+                    }
+
                     foreach (ParseTreeNode id in root.ChildNodes[0].ChildNodes)
                     {
                         string name = id.FindTokenAndGetText();
                         Simbolo aux = new Simbolo(tipo, name, valor);
+                        ambito.insertarConValor(aux);
                     }
                 }
                 catch (Exception e) {
@@ -203,8 +244,10 @@ namespace ChatBot_Service.Logica
 
             try
             {
-                if (root.ChildNodes.Count == 5)              
+                if (root.ChildNodes.Count == 5)
                     guardarConValorArreglo(root.ChildNodes[4].ChildNodes[0], array, ambito);
+                else if (root.ChildNodes.Count == 3)
+                    ambito.guardarArreglo(array);
 
                 ambito.guardarArreglo(array);                   
             }
@@ -239,7 +282,7 @@ namespace ChatBot_Service.Logica
                     return aritmetica2(root, ambito);
                 }
                 else if (root.ChildNodes.Count == 1) {
-                    return aritmetica1(root, ambito);
+                    return aritmetica1(root.ChildNodes[0], ambito);
                 }
             }
             return null;
@@ -462,11 +505,11 @@ namespace ChatBot_Service.Logica
                         return false;                     
 
                     case "cadena":
-                        retorno = limpiarCadena((string)root.FindTokenAndGetText());
+                        retorno = limpiarCadena(root.FindTokenAndGetText());
                         break;
 
                     case "caracter":
-                        retorno = root.FindTokenAndGetText();
+                        retorno = Convert.ToChar(limpiarCadena(root.FindTokenAndGetText()));
                         break;
 
                     case "numero":
@@ -492,7 +535,7 @@ namespace ChatBot_Service.Logica
             return retorno;
         }
 
-        public Object While(ParseTreeNode root, Tabla ambito)
+        public object While(ParseTreeNode root, Tabla ambito)
         {
 
             try
@@ -519,6 +562,67 @@ namespace ChatBot_Service.Logica
                 //guardar error semantico
             }
             return null;
+        }
+
+        public void incrementar(string identificador, Tabla ambito)
+        {
+            try
+            {
+                object antiguo = ambito.obtenerValor(identificador);
+                object valor = Calculadora.incremento(antiguo);
+                ambito.actualizarValor(identificador, valor);
+            }
+            catch (Exception e)
+            {
+                //guardar error semantico
+            }
+        }
+
+        public void decrementar(string identificador, Tabla ambito)
+        {
+            try
+            {
+                object antiguo = ambito.obtenerValor(identificador);
+                object valor = Calculadora.incremento(antiguo);
+                ambito.actualizarValor(identificador, valor);
+            }
+            catch (Exception e)
+            {
+                //guardar error semantico
+            }
+        }
+
+        public void importar(string cadena)
+        {
+
+            if (File.Exists(cadena))
+            {
+                string contenido = File.ReadAllText(cadena);
+                Gramatica grammar = new Gramatica();
+                LanguageData lenguaje = new LanguageData(grammar);
+                Parser parser = new Parser(lenguaje);
+                ParseTree arbol = parser.Parse(contenido);
+                ParseTreeNode root = arbol.Root;
+
+                //chequear si hay errores o no en el archivo
+
+                reconocer(root, false);
+            }
+
+            throw new Exception("El archivo que desea importar no existe en el folder fuente");
+        }
+
+        public void Imprimir(ParseTreeNode expresion, Tabla ambito)
+        {
+            try
+            {
+                string print = Convert.ToString(obtenerValor(expresion, ambito));
+                Data.impresiones.Add(print);
+            }
+            catch (Exception e)
+            {
+                //guardar error semantico
+            }
         }
     }
 }

@@ -18,9 +18,11 @@ namespace ChatBot_Service
         {
             CreateWebHostBuilder(args).Build().Run();
             Data.errores = new List<ErrorC>();
-            Data.procedimientos = new List<Procedimiento>();
+            Data.procedimientos = null;
             Data.ambitoGlobal = null;
             Data.main = null;
+            Data.raiz = null;
+            Data.impresiones = null;
         }
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>

@@ -15,6 +15,8 @@ namespace ChatBot_Service.Global
         public static List<ErrorC> errores;
         public static Procedimiento main;
         public static Tabla ambitoGlobal;
+        public static ParseTreeNode raiz;
+        public static List<string> impresiones;
 
         private static bool contieneMetodo(Procedimiento procedimiento) {
 

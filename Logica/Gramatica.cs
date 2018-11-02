@@ -159,7 +159,8 @@ namespace ChatBot_Service.Logica
             #region reglas gramaticales
 
             //Encabezado
-            ENCABEZADO.Rule = MakePlusRule(ENCABEZADO, IMPORT);
+            ENCABEZADO.Rule = MakePlusRule(ENCABEZADO, IMPORT)
+                | IMPORT;
 
             IMPORT.Rule = importar + cad + finSentencia;
 
@@ -167,16 +168,20 @@ namespace ChatBot_Service.Logica
             this.Root = INICIO;
 
             INICIO.Rule = ENCABEZADO + LISTA_ACCIONES
+                | ENCABEZADO
                 | LISTA_ACCIONES;
 
-            LISTA_ACCIONES.Rule = MakePlusRule(LISTA_ACCIONES, ACCION);
+            LISTA_ACCIONES.Rule = MakePlusRule(LISTA_ACCIONES, ACCION)
+                | ACCION;
 
             ACCION.Rule = DECLARACION
                 | PROCEDIMIENTO
                 | PRINCIPAL
                 | ASIGNACION
                 | DECLARACION_ARREGLO
-                | ASIGNACION_POSICION;
+                | ASIGNACION_POSICION
+                | DINCREMENTO + finSentencia
+                | FUNCION_PRINT + finSentencia;
 
             PRINCIPAL.Rule = principal + dosPuntos + vacio + parentesisA + parentesisC + llaveA + OPCION_SENTENCIAS + llaveC
                 | principal + dosPuntos + TIPO_DATO + parentesisA + identificador + dosPuntos + TIPO_DATO + parentesisC
@@ -191,10 +196,13 @@ namespace ChatBot_Service.Logica
             LISTA_VARS.Rule = MakePlusRule(LISTA_VARS, coma, identificador);
 
             DECLARACION.Rule = LISTA_VARS + dosPuntos + TIPO_DATO + asignacion + EXPRESION_LOGICA + finSentencia
-                | LISTA_VARS + dosPuntos + TIPO_DATO + finSentencia;
+                | identificador + dosPuntos + TIPO_DATO + asignacion + EXPRESION_LOGICA + finSentencia
+                | LISTA_VARS + dosPuntos + TIPO_DATO + finSentencia
+                | identificador + dosPuntos + TIPO_DATO + finSentencia;
 
             // Sintaxis de las Asignaciones
-            ASIGNACION.Rule = identificador + asignacion + EXPRESION_LOGICA + finSentencia;
+            ASIGNACION.Rule = identificador + asignacion + EXPRESION_LOGICA + finSentencia
+                | identificador + asignacion + llaveA + LISTA_DATOS + llaveC + finSentencia;
 
             // Sintaxis de los arreglos
             DECLARACION_ARREGLO.Rule = identificador + dosPuntos + TIPO_DATO
@@ -202,7 +210,8 @@ namespace ChatBot_Service.Logica
                 | identificador + dosPuntos + TIPO_DATO + corcheteA + EXPRESION + corcheteC
                 + asignacion + ASIGNACION_ARREGLO + finSentencia;
 
-            LISTA_DATOS.Rule = MakePlusRule(LISTA_DATOS, coma, EXPRESION_LOGICA);
+            LISTA_DATOS.Rule = MakePlusRule(LISTA_DATOS, coma, EXPRESION_LOGICA)
+                | EXPRESION_LOGICA;
 
             ASIGNACION_ARREGLO.Rule = llaveA + LISTA_DATOS + llaveC
                 | identificador;
@@ -222,9 +231,11 @@ namespace ChatBot_Service.Logica
 
             PARAMETRO.Rule = identificador + dosPuntos + TIPO_DATO;
 
-            LISTA_PARAMETROS.Rule = MakePlusRule(LISTA_PARAMETROS, coma, PARAMETRO);
+            LISTA_PARAMETROS.Rule = MakePlusRule(LISTA_PARAMETROS, coma, PARAMETRO)
+                | PARAMETRO;
 
-            LISTA_SENTENCIAS.Rule = MakePlusRule(LISTA_SENTENCIAS, SENTENCIA);
+            LISTA_SENTENCIAS.Rule = MakePlusRule(LISTA_SENTENCIAS, SENTENCIA)
+                | SENTENCIA;
 
             OPCION_SENTENCIAS.Rule = LISTA_SENTENCIAS | Empty;
 
@@ -238,9 +249,11 @@ namespace ChatBot_Service.Logica
                 | WHILE
                 | DO_WHILE
                 | FUNCION_PRINT + finSentencia
-                | DINCREMENTO + finSentencia;
+                | DINCREMENTO + finSentencia
+                | RETORNO;
 
-            RETORNO.Rule = retornar + EXPRESION_LOGICA + finSentencia;
+            RETORNO.Rule = retornar + EXPRESION_LOGICA + finSentencia
+                | retornar + finSentencia;
 
             //Funciones nativas
             FUNCION_PRINT.Rule = imprimir + parentesisA + EXPRESION_LOGICA + parentesisC;
@@ -287,7 +300,8 @@ namespace ChatBot_Service.Logica
             CUERPO_SWITCH.Rule = LISTA_CASE
                 | LISTA_CASE + DEFAULT;
 
-            LISTA_CASE.Rule = MakePlusRule(LISTA_CASE, CASE);
+            LISTA_CASE.Rule = MakePlusRule(LISTA_CASE, CASE)
+                | CASE;
 
             CASE.Rule = caso + VALOR + dosPuntos + LISTA_SENTENCIAS + quebrar
                 | caso + VALOR + dosPuntos + LISTA_SENTENCIAS

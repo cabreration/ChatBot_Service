@@ -1,0 +1,23 @@
+metodo1 : String() 
+{
+	Print("hola mundo");
+}
+
+metodo2 : Void(uno : String) {
+
+}
+
+metodo3 : Int(uno : Double, dos : Double) 
+{
+	
+}
+
+metodo4 : Double(uno : Bool, dos : Char, tres : Int, cuatro : String, cinco : Double) 
+{
+	
+}
+
+Main : Int(asdf : Bool) 
+{
+	Return "hola mundo";
+}

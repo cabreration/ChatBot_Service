@@ -1,0 +1,6 @@
+indices : Int [5];
+//indices = {10, 20, 30, 40, 50};
+//Print(indices[3]);
+
+Indices : String[1+1+1+1] = {"juan", "jose", "pedro", "tamara"};
+//Print(nombres[0] + ", " + nombres[3] + "!");

@@ -898,5 +898,43 @@ namespace ChatBot_Service.Logica
             if (arg) return 1;
             else return 0;
         }
+
+        public static object incremento(object arg)
+        {
+            if (arg == null)
+                throw new Exception("El valor ingresado en el incremento es nulo");
+
+            if (arg is string)
+                throw new Exception("Operacion invalida sobre cadenas");
+            else if (arg is char)
+                throw new Exception("Operacion invalida sobre caracteres");
+            else if (arg is bool)
+                throw new Exception("Operacion invalida sobre valores booleanos");
+            else if (arg is double)
+                return (double)arg + 1;
+            else if (arg is int)
+                return (int)arg + 1;
+
+            throw new Exception("Operacion invalida, el tipo de dato es inoperable");
+        }
+
+        public static object decremento(object arg)
+        {
+            if (arg == null)
+                throw new Exception("El valor ingresado en el incremento es nulo");
+
+            if (arg is string)
+                throw new Exception("Operacion invalida sobre cadenas");
+            else if (arg is char)
+                throw new Exception("Operacion invalida sobre caracteres");
+            else if (arg is bool)
+                throw new Exception("Operacion invalida sobre valores booleanos");
+            else if (arg is double)
+                return (double)arg - 1;
+            else if (arg is int)
+                return (int)arg - 1;
+
+            throw new Exception("Operacion invalida, el tipo de dato es inoperable");
+        }
     }
 }

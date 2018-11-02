@@ -1,0 +1,10 @@
+one : Int = 45 + 35;
+two : Double = 2.5 - 1.3 * 23.45;
+three : Bool = False || False || False || True;
+four : String = "hola mundo mundial";
+five : Char = 'a';
+Print(one);
+Print(two);
+Print(three);
+Print(four);
+Print(five);
