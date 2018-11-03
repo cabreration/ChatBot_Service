@@ -346,6 +346,9 @@ namespace ChatBot_Service.Logica
         }
 
         public bool logica3(ParseTreeNode root, Tabla ambito) {
+            if (root.ChildNodes[2].Term.Name.Equals("FUNCION_COMPARAR"))
+                return CompareTo2(root, ambito);
+            
             object valor1 = null;
             object valor2 = null;
             bool retorno = false;
@@ -370,7 +373,6 @@ namespace ChatBot_Service.Logica
             return retorno;
         }
 
-        // no esta terminada todavia
         public bool logica2(ParseTreeNode root, Tabla ambito) {
             bool retorno = false;
             if (root.ChildNodes[0].Term.Name.Equals("!"))
@@ -385,7 +387,17 @@ namespace ChatBot_Service.Logica
                     //guardar error semantico
                 }
             }
-            else { }
+            else if (root.ChildNodes[0].Term.Name.Equals("identificador"))
+            {
+                try
+                {
+                    return CompareTo(root, ambito);
+                }
+                catch (Exception e)
+                {
+                    //guardar error semantico
+                }
+            }
 
             return retorno;
         }
@@ -476,7 +488,7 @@ namespace ChatBot_Service.Logica
             return retorno;
         }
 
-        //no esta terminada
+        //no esta terminada, faltan llamadas y la funcion obtener usuario
         public object aritmetica1(ParseTreeNode root, Tabla ambito) {
             object retorno = null;
 
@@ -529,33 +541,47 @@ namespace ChatBot_Service.Logica
             return retorno;
         }
 
-        // no esta terminada
         public object aritmetica2(ParseTreeNode root, Tabla ambito) {
             object retorno = null;
+            if (root.ChildNodes[0].Term.Name.Equals("-"))
+            {
+                try
+                {
+                    object arg = obtenerValor(root.ChildNodes[1], ambito);
+                    return Calculadora.negativo(arg);
+                }
+                catch (Exception e)
+                {
+                    //guardar error semantico
+                }
+            }
+            else
+            {
+                try
+                {
+                    string identificador = root.ChildNodes[0].FindTokenAndGetText();
+                    object indice = obtenerValor(root.ChildNodes[1], ambito);
+
+                    if (!(indice is int))
+                        throw new Exception("El indice del arreglo no es de tipo Int, operacion invalida");
+
+                    retorno = accesoArreglo(identificador, (int)indice, ambito);
+                }
+                catch (Exception e)
+                {
+                    //guardar error semantico
+                }
+            }
             return retorno;
         }
 
+        //no esta terminado
         public object While(ParseTreeNode root, Tabla ambito)
         {
 
             try
             {
-                if (root.ChildNodes.Count == 4)
-                {
-                    bool condicion = (bool)obtenerValor(root.ChildNodes[1].ChildNodes[0], ambito);
-                    while (condicion)
-                    {
-                        //Object retorno = ejecutarSentencias(root.ChildNodes[2], ambito);
-                        condicion = (bool)obtenerValor(root.ChildNodes[1].ChildNodes[0], ambito);
-                        ambito.escalarAmbito();
-                        Tabla padre = ambito.padre;
-                        ambito = new Tabla(padre);
-                        ambito.heredar();
-                        //if (retorno != null)
-                        //  return retorno;
-                    }
-                }
-                else if (root.ChildNodes.Count == 3) { }
+                
             }
             catch (Exception e)
             {
@@ -623,6 +649,74 @@ namespace ChatBot_Service.Logica
             {
                 //guardar error semantico
             }
+        }
+
+        public bool CompareTo(ParseTreeNode variable, Tabla ambito)
+        {
+            bool retorno = false;
+            try
+            {
+                string cadena = (string)ambito.obtenerValor(variable.ChildNodes[0].FindTokenAndGetText());
+                object cont = obtenerValor(variable.ChildNodes[1].ChildNodes[1], ambito);
+                if (!(cont is string))
+                    throw new Exception("El parametro de comparacion no es una cadena");
+
+                string contenido = (string)cont;
+                retorno = contenido.Contains(contenido);
+            }
+            catch (Exception e)
+            {
+                //guardar error semantico
+            }
+            return retorno;
+        }
+
+        public bool CompareTo2(ParseTreeNode datos, Tabla ambito)
+        {
+            bool retorno = false;     
+            try
+            {
+                string identificador = datos.ChildNodes[0].FindTokenAndGetText();
+                object indice = obtenerValor(datos.ChildNodes[1], ambito);
+
+                if (!(indice is int))
+                    throw new Exception("El indice no es un entero");
+
+                object cad = accesoArreglo(identificador, (int)indice, ambito);
+                if (!(cad is string))
+                    throw new Exception("El operando no es de tipo String, operacion invalida");
+
+                string cadena = (string)cad;
+                object cont = obtenerValor(datos.ChildNodes[2].ChildNodes[1], ambito);
+                if (!(cont is string))
+                    throw new Exception("El parametro de comparacion no es de tipo String, operacion invalida");
+
+                string contenido = (string)cont;
+                retorno = cadena.Contains(contenido);
+            }
+            catch (Exception e)
+            {
+                //guardar error semantico
+            }
+            return retorno;
+        }
+
+        public object accesoArreglo(string identificador, int index, Tabla ambito)
+        {
+            object retorno = null;
+            Arreglo array = null;
+            try
+            {
+                array = ambito.obtenerArreglo(identificador);
+                if (index > array.array.Length - 1)
+                    throw new Exception("El indice del arreglo se encuentra fuera de los limites");
+                retorno = array.array[index];
+            }
+            catch (Exception e)
+            {
+                //guardar error semantico
+            }
+            return retorno;
         }
     }
 }
