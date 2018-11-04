@@ -250,6 +250,7 @@ namespace ChatBot_Service.Logica
                 | DO_WHILE
                 | FUNCION_PRINT + finSentencia
                 | DINCREMENTO + finSentencia
+                | LLAMADA + finSentencia
                 | RETORNO;
 
             RETORNO.Rule = retornar + EXPRESION_LOGICA + finSentencia
@@ -316,7 +317,8 @@ namespace ChatBot_Service.Logica
                 | defecto + dosPuntos;
 
             //Llamadas
-            LLAMADA.Rule = identificador + parentesisA + parentesisC;
+            LLAMADA.Rule = identificador + parentesisA + parentesisC
+                | identificador + parentesisA + LISTA_DATOS + parentesisC;
 
             // Expresiones
             EXPRESION_LOGICA.Rule = EXPRESION_LOGICA + and + EXPRESION_LOGICA

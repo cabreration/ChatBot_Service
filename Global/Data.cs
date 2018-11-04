@@ -44,15 +44,24 @@ namespace ChatBot_Service.Global
             Data.procedimientos.Add(procedimiento);
         }
 
-        public static ParseTreeNode buscarProcedimiento(string identificador, ArrayList parametros) {
+        public static Procedimiento buscarProcedimiento(string identificador, ArrayList parametros) {
 
-            ParseTreeNode acciones = null;
+            Procedimiento acciones = null;
+            if (parametros == null)
+            {
+                foreach (Procedimiento meth in Data.procedimientos)
+                {
+                    if (meth.identificador.Equals(identificador))
+                        acciones = meth;
+                }
+            }
+         
             foreach (Procedimiento met in Data.procedimientos) {
                 if (met.identificador.Equals(identificador)) {
                     if (met.parametros.Count == parametros.Count)
                     {
                         if (validarParametros(parametros, met.parametros))
-                            acciones = met.root;
+                            acciones = met;
                     }
                 }
             }

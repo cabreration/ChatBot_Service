@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -127,21 +128,29 @@ namespace ChatBot_Service.Logica
                 try
                 {
                     string tipo = root.ChildNodes[1].ChildNodes[0].Term.Name;
-                    object valor = obtenerValor(root.ChildNodes[3], ambito); //capturar valor
 
                     if (root.ChildNodes[0].Term.Name.Equals("identificador"))
                     {
+                        object valor2 = obtenerValor(root.ChildNodes[3], ambito); //capturar valor
                         string nombre = root.ChildNodes[0].FindTokenAndGetText();
-                        Simbolo normal = new Simbolo(tipo, nombre, valor);
+                        Simbolo normal = new Simbolo(tipo, nombre, valor2);
                         ambito.insertarConValor(normal);
+                        return;
                     }
 
-                    foreach (ParseTreeNode id in root.ChildNodes[0].ChildNodes)
+                    for (int i = 0; i < root.ChildNodes[0].ChildNodes.Count-1; i++)
                     {
+                        ParseTreeNode id = root.ChildNodes[0].ChildNodes[i];
                         string name = id.FindTokenAndGetText();
-                        Simbolo aux = new Simbolo(tipo, name, valor);
-                        ambito.insertarConValor(aux);
+                        Simbolo aux = new Simbolo(tipo, name);
+                        ambito.insertarSinValor(aux);
                     }
+
+                    object valor = obtenerValor(root.ChildNodes[3], ambito); //capturar valor
+                    int ult = root.ChildNodes[0].ChildNodes.Count-1;
+                    string last = root.ChildNodes[0].ChildNodes[ult].FindTokenAndGetText();
+                    Simbolo temp = new Simbolo(tipo, last, valor);
+                    ambito.insertarConValor(temp);
                 }
                 catch (Exception e) {
                     //capturar error semantico
@@ -575,21 +584,6 @@ namespace ChatBot_Service.Logica
             return retorno;
         }
 
-        //no esta terminado
-        public object While(ParseTreeNode root, Tabla ambito)
-        {
-
-            try
-            {
-                
-            }
-            catch (Exception e)
-            {
-                //guardar error semantico
-            }
-            return null;
-        }
-
         public void incrementar(string identificador, Tabla ambito)
         {
             try
@@ -717,6 +711,183 @@ namespace ChatBot_Service.Logica
                 //guardar error semantico
             }
             return retorno;
+        }
+
+        public object llamada(ParseTreeNode llamada, Tabla ambito)
+        {
+            object retorno = null;
+            Procedimiento procedimiento = buscarProcedimiento(llamada, ambito);
+            if (procedimiento == null)
+                return null;
+
+            Tabla scope = null;
+            if (procedimiento.parametros.Count > 0 && llamada.ChildNodes.Count > 1)
+            {
+                try
+                {
+                    ArrayList pars = obtenerValoresDados(llamada.ChildNodes[1], ambito);
+                    scope = construirTabla(procedimiento.parametros, pars, ambito);
+                }
+                catch (Exception e)
+                {
+                    // guardar error semantico
+                }
+            }
+            else
+            {
+                scope = new Tabla(ambito);
+                scope.heredar();
+            }
+
+            Retorno valor = ejecutarSentencias(procedimiento.root, scope);
+            if (!(procedimiento.tipo.Equals(valor.tipo)))
+                throw new Exception("El tipo de retorno esperado no concuerda con el recibido");
+
+            retorno = valor.valor;
+            return retorno;
+        }
+
+        //me falta validar que tambien los arreglos puedan ser parametros
+        public Tabla construirTabla(List<Simbolo> parametros, ArrayList valores, Tabla padre)
+        {
+            Tabla retorno = new Tabla();
+            retorno.heredar();
+            if (parametros.Count != valores.Count)
+                throw new Exception("No ha incluido todos los parametros en la llamada al, metodo");
+
+            for (int i = 0; i < parametros.Count; i++)
+            {
+                parametros[i].valor = valores[i];
+                retorno.insertarConValor(parametros[i]);
+            }
+            return retorno;
+        }
+
+        public Procedimiento buscarProcedimiento(ParseTreeNode llamada, Tabla ambito)
+        {
+            Procedimiento retorno = null;
+            if (llamada.ChildNodes.Count == 1)
+            {
+                try
+                {
+                    string id = llamada.ChildNodes[0].FindTokenAndGetText();
+                    retorno = Data.buscarProcedimiento(id, null);
+                }
+                catch (Exception e)
+                {
+                    //guardar error semantico
+                }
+            }
+            else if (llamada.ChildNodes.Count == 2)
+            {
+                try
+                {
+                    string id = llamada.ChildNodes[0].FindTokenAndGetText();
+                    ArrayList parametros = obtenerValoresDados(llamada.ChildNodes[1], ambito);
+                    retorno = Data.buscarProcedimiento(id, parametros);
+                }
+                catch (Exception e)
+                {
+                    //guardar error semantico
+                }
+            }
+
+            return retorno;
+        }
+
+        public ArrayList obtenerValoresDados(ParseTreeNode parametros, Tabla ambito)
+        {
+            ArrayList retorno = new ArrayList();
+            if (parametros.ChildNodes.Count == 1)
+            {
+                object valor = obtenerValor(parametros.ChildNodes[0], ambito);
+                retorno.Add(valor);
+            }
+            else
+            {
+                foreach (ParseTreeNode hijo in parametros.ChildNodes)
+                {
+                    object valor = obtenerValor(hijo, ambito);
+                    retorno.Add(valor);
+                }
+            }
+            return retorno;
+        }
+
+        public Retorno ejecutarSentencias(ParseTreeNode sentencias, Tabla ambito) {
+            Retorno retorno = new Retorno("quemado", 0);
+            foreach (ParseTreeNode hijo in sentencias.ChildNodes)
+            {
+                if (retorno.estado == 0)
+                {
+                    ParseTreeNode instruccion = hijo.ChildNodes[0];
+                    switch (instruccion.Term.Name)
+                    {
+                        case "DECLARACION":
+                            break;
+
+                        case "ASIGNACION":
+                            break;
+
+                        case "DECLARACION_ARREGLO":
+                            break;
+
+                        case "ASIGNACION_POSICION":
+                            break;
+
+                        case "IF":
+                            break;
+
+                        case "FOR":
+                            break;
+
+                        case "SWITCH":
+                            break;
+
+                        case "WHILE":
+                            break;
+
+                        case "DO_WHILE":
+                            break;
+
+                        case "FUNCION_PRINT":
+                            break;
+
+                        case "DINCREMENTO":
+                            break;
+
+                        case "LLAMADA":
+                            break;
+
+                        case "RETORNO":
+                            break;
+                    }
+                }
+                else if (retorno.estado == 1)
+                {
+
+                }
+                else if (retorno.estado == 2)
+                {
+
+                }
+            }
+            return retorno;
+        }
+
+        //no esta terminado
+        public object While(ParseTreeNode root, Tabla ambito)
+        {
+
+            try
+            {
+
+            }
+            catch (Exception e)
+            {
+                //guardar error semantico
+            }
+            return null;
         }
     }
 }
