@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -11,18 +12,18 @@ namespace ChatBot_Service.Global
     {
         public string tipo;
         public string identificador;
-        public List<Simbolo> parametros;
+        public ArrayList parametros;
         public ParseTreeNode root;
 
         public Procedimiento(string tipo, string identificador, ParseTreeNode raiz)
         {
             this.tipo = tipo;
             this.identificador = identificador;
-            this.parametros = new List<Simbolo>();
+            this.parametros = new ArrayList();
             this.root = raiz;
         }
 
-        public Procedimiento(string tipo, string identificador, ParseTreeNode root, List<Simbolo> parametros)
+        public Procedimiento(string tipo, string identificador, ParseTreeNode root, ArrayList parametros)
         {
             this.tipo = tipo;
             this.identificador = identificador;

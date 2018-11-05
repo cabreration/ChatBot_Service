@@ -95,7 +95,7 @@ namespace ChatBot_Service.Logica
 
             #region Precedencias y puntuaciones
             this.MarkPunctuation(finSentencia, parentesisA, parentesisC,
-                llaveA, llaveC, dosPuntos, corcheteA, corcheteC, coma, punto);
+                llaveA, llaveC, dosPuntos, coma, punto);
 
             RegisterOperators(1, Associativity.Left, sumar, restar);
             RegisterOperators(2, Associativity.Left, multiplicar, modular, dividir);
@@ -184,10 +184,9 @@ namespace ChatBot_Service.Logica
                 | FUNCION_PRINT + finSentencia;
 
             PRINCIPAL.Rule = principal + dosPuntos + vacio + parentesisA + parentesisC + llaveA + OPCION_SENTENCIAS + llaveC
-                | principal + dosPuntos + TIPO_DATO + parentesisA + identificador + dosPuntos + TIPO_DATO + parentesisC
+                | principal + dosPuntos + TIPO_DATO + parentesisA + PARAMETRO + parentesisC
                 + llaveA + OPCION_SENTENCIAS + llaveC
-                | principal + dosPuntos + vacio + parentesisA + identificador + dosPuntos 
-                + TIPO_DATO + parentesisC + llaveA + OPCION_SENTENCIAS + llaveC
+                | principal + dosPuntos + vacio + parentesisA + PARAMETRO + parentesisC + llaveA + OPCION_SENTENCIAS + llaveC
                 | principal + dosPuntos + TIPO_DATO + parentesisA + parentesisC + llaveA + OPCION_SENTENCIAS + llaveC;
 
             // Sintaxis de las Declaraciones
@@ -229,7 +228,8 @@ namespace ChatBot_Service.Logica
                 | identificador + dosPuntos + vacio
                 + parentesisA + parentesisC + llaveA + OPCION_SENTENCIAS + llaveC;
 
-            PARAMETRO.Rule = identificador + dosPuntos + TIPO_DATO;
+            PARAMETRO.Rule = identificador + dosPuntos + TIPO_DATO
+                | identificador + dosPuntos + TIPO_DATO + corcheteA + corcheteC;
 
             LISTA_PARAMETROS.Rule = MakePlusRule(LISTA_PARAMETROS, coma, PARAMETRO)
                 | PARAMETRO;
@@ -347,7 +347,7 @@ namespace ChatBot_Service.Logica
                 | EXPRESION + elevar + EXPRESION
                 | restar + EXPRESION
                 | parentesisA + EXPRESION_LOGICA + parentesisC
-                | identificador + llaveA + EXPRESION + llaveC
+                | identificador + corcheteA + EXPRESION + corcheteC
                 | identificador
                 | LLAMADA
                 | OBTENER_USUARIO

@@ -109,8 +109,8 @@ namespace ChatBot_Service.Logica
                 {
                     string nombre = root.ChildNodes[0].FindTokenAndGetText();
                     ambito.insertarSinValor(new Simbolo(tipo, nombre));
+                    return;
                 }
-
 
                 foreach (ParseTreeNode id in root.ChildNodes[0].ChildNodes) {
                     string name = id.FindTokenAndGetText();
@@ -172,22 +172,52 @@ namespace ChatBot_Service.Logica
                     Data.main = new Procedimiento(nombre, tipo, root.ChildNodes[2]);
                 }
             }
-            else if (root.ChildNodes.Count == 5) {
+            else if (root.ChildNodes.Count == 4) {
                 if (root.ChildNodes[1].Term.Name.Equals("Void"))
                 {
-                    Data.main = new Procedimiento(nombre, "Void", root.ChildNodes[4]);
-                    Simbolo aux = new Simbolo(root.ChildNodes[4].ChildNodes[0].Term.Name,
-                        root.ChildNodes[3].FindTokenAndGetText());
-                    Data.main.parametros.Add(aux);
+                    Data.main = new Procedimiento(nombre, "Void", root.ChildNodes[3]);
+                    if (root.ChildNodes[2].ChildNodes.Count == 2)
+                    {
+                        Simbolo insert = parametroASimbolo(root.ChildNodes[2]);
+                        Data.main.parametros.Add(insert);
+                    }
+                    else if (root.ChildNodes[2].ChildNodes.Count == 4)
+                    {
+                        Arreglo inserto = parametroArreglo(root.ChildNodes[2]);
+                        Data.main.parametros.Add(inserto);
+                    }
                 }
                 else {
                     tipo = root.ChildNodes[1].ChildNodes[0].Term.Name;
                     Data.main = new Procedimiento(nombre, tipo, root.ChildNodes[4]);
-                    Simbolo aux = new Simbolo(root.ChildNodes[4].ChildNodes[0].Term.Name,
-                        root.ChildNodes[3].FindTokenAndGetText());
-                    Data.main.parametros.Add(aux);
+                    if (root.ChildNodes[2].ChildNodes.Count == 2)
+                    {
+                        Simbolo insert = parametroASimbolo(root.ChildNodes[2]);
+                        Data.main.parametros.Add(insert);
+                    }
+                    else if (root.ChildNodes[2].ChildNodes.Count == 4)
+                    {
+                        Arreglo inserto = parametroArreglo(root.ChildNodes[2]);
+                        Data.main.parametros.Add(inserto);
+                    }
                 }
             }
+        }
+
+        public Simbolo parametroASimbolo(ParseTreeNode parametro)
+        {
+            string tipo = parametro.ChildNodes[1].Term.Name;
+            string id = parametro.ChildNodes[0].FindTokenAndGetText();
+            Simbolo retorno = new Simbolo(tipo, id);
+            return retorno;
+        }
+
+        public Arreglo parametroArreglo(ParseTreeNode parametro)
+        {
+            string tipo = parametro.ChildNodes[1].Term.Name;
+            string id = parametro.ChildNodes[0].FindTokenAndGetText();
+            Arreglo retorno = new Arreglo(0, id, tipo);
+            return retorno;
         }
 
         public void guardarProcedimiento(ParseTreeNode root) {
@@ -203,7 +233,7 @@ namespace ChatBot_Service.Logica
 
             if (root.ChildNodes.Count == 4) { //incluye parametros       
                 sentencias = root.ChildNodes[3];
-                List<Simbolo> parametros = obtenerParametros(root.ChildNodes[2]);
+                ArrayList parametros = obtenerParametros(root.ChildNodes[2]);
                 meth = new Procedimiento(tipo, identificador, sentencias, parametros);
             }
             else if (root.ChildNodes.Count == 3) { // no incluye parametros
@@ -219,24 +249,28 @@ namespace ChatBot_Service.Logica
             }
         }
 
-        public List<Simbolo> obtenerParametros(ParseTreeNode root) {
-            List<Simbolo> retorno = new List<Simbolo>();
+        public ArrayList obtenerParametros(ParseTreeNode root) {
+            ArrayList retorno = new ArrayList();
 
             foreach (ParseTreeNode hijo in root.ChildNodes) {
-                string id = hijo.ChildNodes[0].FindTokenAndGetText();
-                string tipo = hijo.ChildNodes[1].ChildNodes[0].Term.Name;
-                Simbolo aux = new Simbolo(tipo, id);
-
-                retorno.Add(aux);
+                if (hijo.ChildNodes.Count == 2)
+                {
+                    Simbolo sim = parametroASimbolo(hijo);
+                    retorno.Add(sim);
+                }
+                else if (hijo.ChildNodes.Count == 4)
+                {
+                    Arreglo arr = parametroArreglo(hijo);
+                    retorno.Add(arr);
+                }
             }
             return retorno;
         }
 
-        public void actualizarValor(ParseTreeNode root, Tabla ambito) {
-            string id = root.ChildNodes[0].FindTokenAndGetText(); //obtenemos el identificador
-            object valor = obtenerValor(root.ChildNodes[2], ambito); // debemos obtener el valor
-
+        public void actualizarValor(ParseTreeNode root, Tabla ambito) { 
             try {
+                string id = root.ChildNodes[0].FindTokenAndGetText();
+                object valor = obtenerValor(root.ChildNodes[2], ambito);
                 ambito.actualizarValor(id, valor);
             }
             catch (Exception e) {
@@ -246,16 +280,25 @@ namespace ChatBot_Service.Logica
 
         public void guardarArreglo(ParseTreeNode root, Tabla ambito) {
 
-            int tamanio = (int)obtenerValor(root.ChildNodes[2], ambito);
+            int tamanio = (int)obtenerValor(root.ChildNodes[3], ambito);
             string identificador = root.ChildNodes[0].FindTokenAndGetText();
             string tipo = root.ChildNodes[1].ChildNodes[0].Term.Name;
             Arreglo array = new Arreglo(tamanio, identificador, tipo);
 
             try
             {
-                if (root.ChildNodes.Count == 5)
-                    guardarConValorArreglo(root.ChildNodes[4].ChildNodes[0], array, ambito);
-                else if (root.ChildNodes.Count == 3)
+                if (root.ChildNodes.Count == 7)
+                {
+                    try
+                    {
+                        guardarConValorArreglo(root.ChildNodes[6].ChildNodes[0], array, ambito);
+                    }
+                    catch (Exception e)
+                    {
+                        //guardar error semantico
+                    }
+                }
+                else if (root.ChildNodes.Count == 5)
                     ambito.guardarArreglo(array);
 
                 ambito.guardarArreglo(array);                   
@@ -267,6 +310,7 @@ namespace ChatBot_Service.Logica
             
         }
 
+        //falta un elemento hasta el final
         public object obtenerValor(ParseTreeNode root, Tabla ambito) {
             if (root.Term.Name.Equals("EXPRESION_LOGICA"))
             {
@@ -276,6 +320,17 @@ namespace ChatBot_Service.Logica
                     return logica2(root, ambito);
                 else if (root.ChildNodes.Count == 1)
                     return obtenerValor(root.ChildNodes[0], ambito);
+                else if (root.ChildNodes.Count == 5)
+                {
+                    try
+                    {
+                        return CompareTo2(root, ambito);
+                    }
+                    catch (Exception e)
+                    {
+                        //guardar error semantico
+                    }
+                }
             }
             else if (root.Term.Name.Equals("EXPRESION_RELACIONAL")) {
                 if (root.ChildNodes.Count == 3)
@@ -284,14 +339,21 @@ namespace ChatBot_Service.Logica
                     return obtenerValor(root.ChildNodes[0], ambito);
             }
             else if (root.Term.Name.Equals("EXPRESION")) {
-                if (root.ChildNodes.Count == 3) {
+                if (root.ChildNodes.Count == 3)
+                {
                     return aritmetica3(root, ambito);
                 }
-                else if (root.ChildNodes.Count == 2) {
+                else if (root.ChildNodes.Count == 2)
+                {
                     return aritmetica2(root, ambito);
                 }
-                else if (root.ChildNodes.Count == 1) {
+                else if (root.ChildNodes.Count == 1)
+                {
                     return aritmetica1(root.ChildNodes[0], ambito);
+                }
+                else if (root.ChildNodes.Count == 4)
+                {
+
                 }
             }
             return null;
@@ -339,8 +401,8 @@ namespace ChatBot_Service.Logica
             try
             {
                 Arreglo aux = ambito.obtenerArreglo(identificador);
-                indice = (int)obtenerValor(raiz.ChildNodes[1], ambito);
-                valor = obtenerValor(raiz.ChildNodes[3], ambito);
+                indice = (int)obtenerValor(raiz.ChildNodes[2], ambito);
+                valor = obtenerValor(raiz.ChildNodes[5], ambito);
                 aux.insertarEnIndice(indice, valor);
             }
             catch (Exception e)
@@ -354,10 +416,7 @@ namespace ChatBot_Service.Logica
             return cadena.Substring(1, cadena.Length - 2);
         }
 
-        public bool logica3(ParseTreeNode root, Tabla ambito) {
-            if (root.ChildNodes[2].Term.Name.Equals("FUNCION_COMPARAR"))
-                return CompareTo2(root, ambito);
-            
+        public bool logica3(ParseTreeNode root, Tabla ambito) {          
             object valor1 = null;
             object valor2 = null;
             bool retorno = false;
@@ -510,7 +569,8 @@ namespace ChatBot_Service.Logica
                         break;
 
                     case "identificador":
-                        retorno = ambito.obtenerValor(root.FindTokenAndGetText());
+                        // puede ser un arreglo tambien
+                        //retorno = ambito.obtenerValor(root.FindTokenAndGetText());
                         break;
 
                     case "LLAMADA":
@@ -558,23 +618,6 @@ namespace ChatBot_Service.Logica
                 {
                     object arg = obtenerValor(root.ChildNodes[1], ambito);
                     return Calculadora.negativo(arg);
-                }
-                catch (Exception e)
-                {
-                    //guardar error semantico
-                }
-            }
-            else
-            {
-                try
-                {
-                    string identificador = root.ChildNodes[0].FindTokenAndGetText();
-                    object indice = obtenerValor(root.ChildNodes[1], ambito);
-
-                    if (!(indice is int))
-                        throw new Exception("El indice del arreglo no es de tipo Int, operacion invalida");
-
-                    retorno = accesoArreglo(identificador, (int)indice, ambito);
                 }
                 catch (Exception e)
                 {
@@ -671,7 +714,7 @@ namespace ChatBot_Service.Logica
             try
             {
                 string identificador = datos.ChildNodes[0].FindTokenAndGetText();
-                object indice = obtenerValor(datos.ChildNodes[1], ambito);
+                object indice = obtenerValor(datos.ChildNodes[2], ambito);
 
                 if (!(indice is int))
                     throw new Exception("El indice no es un entero");
@@ -681,7 +724,7 @@ namespace ChatBot_Service.Logica
                     throw new Exception("El operando no es de tipo String, operacion invalida");
 
                 string cadena = (string)cad;
-                object cont = obtenerValor(datos.ChildNodes[2].ChildNodes[1], ambito);
+                object cont = obtenerValor(datos.ChildNodes[4].ChildNodes[1], ambito);
                 if (!(cont is string))
                     throw new Exception("El parametro de comparacion no es de tipo String, operacion invalida");
 
@@ -725,7 +768,7 @@ namespace ChatBot_Service.Logica
             {
                 try
                 {
-                    ArrayList pars = obtenerValoresDados(llamada.ChildNodes[1], ambito);
+                    List<Parametro> pars = obtenerValoresDados(llamada.ChildNodes[1], ambito);
                     scope = construirTabla(procedimiento.parametros, pars, ambito);
                 }
                 catch (Exception e)
@@ -748,17 +791,25 @@ namespace ChatBot_Service.Logica
         }
 
         //me falta validar que tambien los arreglos puedan ser parametros
-        public Tabla construirTabla(List<Simbolo> parametros, ArrayList valores, Tabla padre)
+        public Tabla construirTabla(ArrayList parametros, List<Parametro> valores, Tabla padre)
         {
-            Tabla retorno = new Tabla();
+            Tabla retorno = new Tabla(padre);
             retorno.heredar();
             if (parametros.Count != valores.Count)
                 throw new Exception("No ha incluido todos los parametros en la llamada al, metodo");
 
             for (int i = 0; i < parametros.Count; i++)
             {
-                parametros[i].valor = valores[i];
-                retorno.insertarConValor(parametros[i]);
+                if (parametros[i] is Simbolo)
+                {
+                    ((Simbolo)parametros[i]).valor = valores[i].valor;
+                    retorno.insertarConValor((Simbolo)parametros[i]);
+                }
+                else if (parametros[i] is Arreglo)
+                {
+                    ((Arreglo)parametros[i]).array = (object[])valores[i].valor;
+                    retorno.guardarArreglo((Arreglo)parametros[i]);
+                }              
             }
             return retorno;
         }
@@ -783,7 +834,7 @@ namespace ChatBot_Service.Logica
                 try
                 {
                     string id = llamada.ChildNodes[0].FindTokenAndGetText();
-                    ArrayList parametros = obtenerValoresDados(llamada.ChildNodes[1], ambito);
+                    List<Parametro> parametros = obtenerValoresDados(llamada.ChildNodes[1], ambito);
                     retorno = Data.buscarProcedimiento(id, parametros);
                 }
                 catch (Exception e)
@@ -795,20 +846,32 @@ namespace ChatBot_Service.Logica
             return retorno;
         }
 
-        public ArrayList obtenerValoresDados(ParseTreeNode parametros, Tabla ambito)
+        public List<Parametro> obtenerValoresDados(ParseTreeNode parametros, Tabla ambito)
         {
-            ArrayList retorno = new ArrayList();
+            List<Parametro> retorno = new List<Parametro>();
             if (parametros.ChildNodes.Count == 1)
             {
                 object valor = obtenerValor(parametros.ChildNodes[0], ambito);
-                retorno.Add(valor);
+                Parametro par;
+                if (valor is Arreglo)
+                {
+                    par = new Parametro(2, valor);
+                }
+                else par = new Parametro(1, valor);
+                retorno.Add(par);
             }
             else
             {
                 foreach (ParseTreeNode hijo in parametros.ChildNodes)
                 {
                     object valor = obtenerValor(hijo, ambito);
-                    retorno.Add(valor);
+                    Parametro par;
+                    if (valor is Arreglo)
+                    {
+                        par = new Parametro(2, valor);
+                    }
+                    else par = new Parametro(1, valor);
+                    retorno.Add(par);
                 }
             }
             return retorno;

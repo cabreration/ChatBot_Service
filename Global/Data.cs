@@ -27,7 +27,7 @@ namespace ChatBot_Service.Global
                         bool flag = true;
                         for (int i = 0; i < proc.parametros.Count; i++)
                         {
-                            flag = flag && (proc.parametros[i].tipo.Equals(procedimiento.parametros[i].tipo));
+                            flag = flag && validarParametros(proc.parametros[i], procedimiento.parametros[i]);
                         }
                         if (flag) return true;
                     }
@@ -44,7 +44,7 @@ namespace ChatBot_Service.Global
             Data.procedimientos.Add(procedimiento);
         }
 
-        public static Procedimiento buscarProcedimiento(string identificador, ArrayList parametros) {
+        public static Procedimiento buscarProcedimiento(string identificador, List<Parametro> parametros) {
 
             Procedimiento acciones = null;
             if (parametros == null)
@@ -71,34 +71,132 @@ namespace ChatBot_Service.Global
             return acciones;
         }
 
-        public static bool validarParametros(ArrayList valores, List<Simbolo> parametros) {
+        public static bool validarParametros(object arg1, object arg2)
+        {
+            if (arg1 is Simbolo)
+            {
+                if (arg2 is Simbolo)
+                {
+                    Simbolo uno = (Simbolo)arg1;
+                    Simbolo dos = (Simbolo)arg2;
+                    if (uno.tipo.Equals(dos.tipo))
+                        return true;
+                }
+                else return false;
+            }
+            else if (arg1 is Arreglo)
+            {
+                if (arg2 is Arreglo)
+                {
+                    Arreglo one = (Arreglo)arg1;
+                    Arreglo two = (Arreglo)arg2;
+                    if (one.tipo.Equals(two.tipo))
+                        return true;
+                }
+                else return false;
+            }
+            return false;
+        }
+
+        public static bool validarParametros(List<Parametro> valores, ArrayList parametros) {
             bool flag = true;
             for (int i = 0; i < valores.Count; i++)
             {
-                switch (parametros[i].tipo) {
-
-                    case "Int":
-                        flag = flag && (valores[i] is int); 
-                        break;
-
-                    case "String":
-                        flag = flag && (valores[i] is string);
-                        break;
-
-                    case "Char":
-                        flag = flag && (valores[i] is char);
-                        break;
-
-                    case "Double":
-                        flag = flag && (valores[i] is double);
-                        break;
-
-                    case "Bool":
-                        flag = flag && (valores[i] is bool);
-                        break;
+                if (parametros[i] is Simbolo)
+                {
+                    if (valores[i].tipo == 1)
+                    {
+                        flag = flag && validarTipo((Simbolo)parametros[i], valores[i]);
+                    }
+                    else
+                        return false;
                 }
+                else if (parametros[i] is Arreglo)
+                {
+                    if (valores[i].tipo == 2)
+                    {
+                        try
+                        {
+                            object[] arre = (object[])valores[i].valor;
+                            flag = flag && validarArreglo((Arreglo)parametros[i], arre);
+                        }
+                        catch (Exception e)
+                        {
+                            //guardar error semantico
+                        }
+                    }
+                    else
+                        return false;
+                }              
             }
             return flag;
+        }
+
+        private static bool validarTipo(Simbolo sim, Parametro para)
+        {
+            switch (sim.tipo)
+            {
+                case "Int":
+                    if (!(para.valor is int))
+                        return false;
+                    break;
+
+                case "String":
+                    if (!(para.valor is string))
+                        return false;
+                    break;
+
+                case "Double":
+                    if (!(para.valor is double))
+                        return false;
+                    break;
+
+                case "Bool":
+                    if (!(para.valor is bool))
+                        return false;
+                    break;
+
+                case "Char":
+                    if (!(para.valor is char))
+                        return false;
+                    break;
+            }
+            return true;
+        }
+
+        private static bool validarArreglo(Arreglo arr, object[] arreglo)
+        {
+            if (arreglo[0] == null)
+                throw new Exception("El arreglo que intenta usar no tiene valores asignados");
+
+            switch (arr.tipo)
+            {
+                case "Int":
+                    if (!(arreglo[0] is int))
+                        return false;
+                    break;
+
+                case "String":
+                    if (!(arreglo[0] is string))
+                        return false;
+                    break;
+
+                case "Double":
+                    if (!(arreglo[0] is double))
+                        return false;
+                    break;
+
+                case "Bool":
+                    if (!(arreglo[0] is bool))
+                        return false;
+                    break;
+
+                case "Char":
+                    if (!(arreglo[0] is char))
+                        return false;
+                    break;
+            }
+            return true;
         }
     }
 }

@@ -12,6 +12,63 @@ namespace ChatBot_Service.Tabla_De_Simbolos
         public string tipo;
         public object[] array;
 
+
+        public void cambiarTamanio(int size)
+        {
+            this.size = size;
+            object[] mrBlueSky = new object[size];
+
+            if (array[0] == null)
+            {
+                array = mrBlueSky;
+                return;
+            }
+
+            if (array.Length > mrBlueSky.Length)
+            {
+                for (int i = 0; i < mrBlueSky.Length; i++)
+                {
+                    mrBlueSky[i] = array[i];
+                }
+            }
+            else if (array.Length <= mrBlueSky.Length)
+            {
+                for (int i = 0; i < array.Length; i++)
+                {
+                    mrBlueSky[i] = array[i];
+                }
+            }
+
+            array = mrBlueSky;
+
+            object valor = null;
+            switch (tipo)
+            {
+                case "Int":
+                    valor = 0;
+                    break;
+                case "Double":
+                    valor = 0.0;
+                    break;
+                case "String":
+                    valor = "";
+                    break;
+                case "Char":
+                    valor = '\u0000';
+                    break;
+                case "Bool":
+                    valor = false;
+                    break;
+            }
+
+            for (int i = 0; i < array.Length; i++)
+            {
+                if (array[i] == null)
+                    array[i] = valor;
+            }
+
+        }
+
         public Arreglo(int size, string identificador, string tipo) {
             this.size = size;
             this.identificador = identificador;
@@ -33,7 +90,7 @@ namespace ChatBot_Service.Tabla_De_Simbolos
                 case "Char":
                     valor = '\u0000';
                     break;
-                case "Boolean":
+                case "Bool":
                     valor = false;
                     break;
             }
