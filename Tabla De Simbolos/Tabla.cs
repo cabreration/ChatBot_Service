@@ -21,6 +21,14 @@ namespace ChatBot_Service.Tabla_De_Simbolos
             elementos = new Hashtable();
         }
 
+
+        public object obtenerElemento(string identificador) {
+            if (!(contiene(identificador)))
+                throw new Exception("La variable a la que esta intentando acceder no existe en el ambito actual");
+
+            object retorno = elementos[identificador];
+            return retorno;
+        }
         public bool contiene(string identificador) {
             return this.elementos.Contains(identificador);
         }
@@ -86,44 +94,85 @@ namespace ChatBot_Service.Tabla_De_Simbolos
             if (!(contiene(identificador)))
                 throw new Exception("La variable " + identificador + " no existe en el contexto actual");
 
-            Simbolo aux = (Simbolo)elementos[identificador];
 
-            switch (aux.tipo) {
-                case "Int":
-                    if (valor is int)
-                        ((Simbolo)elementos[identificador]).valor = valor;
-                    else throw new Exception("el valor que intenta darle a la variable " + identificador
-                        + " no es de tipo Int");
-                    break;
+            if (elementos[identificador] is Simbolo)
+            {
+                Simbolo aux = (Simbolo)elementos[identificador];
 
-                case "Double":
-                    if (valor is double)
-                        ((Simbolo)elementos[identificador]).valor = valor;
-                    else throw new Exception("el valor que intenta darle a la variable " + identificador
-                        + " no es de tipo Double");
-                    break;
+                switch (aux.tipo)
+                {
+                    case "Int":
+                        if (valor is int)
+                            ((Simbolo)elementos[identificador]).valor = valor;
+                        else throw new Exception("el valor que intenta darle a la variable " + identificador
+                            + " no es de tipo Int");
+                        break;
 
-                case "String":
-                    if (valor is string)
-                        ((Simbolo)elementos[identificador]).valor = valor;
-                    else throw new Exception("el valor que intenta darle a la variable " + identificador
-                        + " no es de tipo String");
-                    break;
+                    case "Double":
+                        if (valor is double)
+                            ((Simbolo)elementos[identificador]).valor = valor;
+                        else throw new Exception("el valor que intenta darle a la variable " + identificador
+                            + " no es de tipo Double");
+                        break;
 
-                case "Bool":
-                    if (valor is bool)
-                        ((Simbolo)elementos[identificador]).valor = valor;
-                    else throw new Exception("el valor que intenta darle a la variable " + identificador
-                        + " no es de tipo Bool");
-                    break;
+                    case "String":
+                        if (valor is string)
+                            ((Simbolo)elementos[identificador]).valor = valor;
+                        else throw new Exception("el valor que intenta darle a la variable " + identificador
+                            + " no es de tipo String");
+                        break;
 
-                case "Char":
-                    if (valor is char)
-                        ((Simbolo)elementos[identificador]).valor = valor;
-                    else throw new Exception("el valor que intenta darle" +
-                        " a la variable " + identificador
-                        + " no es de tipo Char");
-                    break;
+                    case "Bool":
+                        if (valor is bool)
+                            ((Simbolo)elementos[identificador]).valor = valor;
+                        else throw new Exception("el valor que intenta darle a la variable " + identificador
+                            + " no es de tipo Bool");
+                        break;
+
+                    case "Char":
+                        if (valor is char)
+                            ((Simbolo)elementos[identificador]).valor = valor;
+                        else throw new Exception("el valor que intenta darle" +
+                            " a la variable " + identificador
+                            + " no es de tipo Char");
+                        break;
+                }
+            }
+            else if (elementos[identificador] is Arreglo)
+            {
+                if (!(valor is Arreglo))
+                    throw new Exception("No se puede asignar una variable primitiva a un arreglo");
+
+                switch (((Arreglo)elementos[identificador]).tipo)
+                {
+                    case "Int":
+                        if (!((Arreglo)valor).tipo.Equals("Int"))
+                            throw new Exception("Los tipos de dato de los arreglos no coinciden");
+                        break;
+
+                    case "Double":
+                        if (!((Arreglo)valor).tipo.Equals("Double"))
+                            throw new Exception("Los tipos de dato de los arreglos no coinciden");
+                        break;
+
+                    case "String":
+                        if (!((Arreglo)valor).tipo.Equals("String"))
+                            throw new Exception("Los tipos de dato de los arreglos no coinciden");
+                        break;
+
+                    case "Bool":
+                        if (!((Arreglo)valor).tipo.Equals("Bool"))
+                            throw new Exception("Los tipos de dato de los arreglos no coinciden");
+                        break;
+
+                    case "Char":
+                        if (!((Arreglo)valor).tipo.Equals("Char"))
+                            throw new Exception("Los tipos de dato de los arreglos no coinciden");
+                        break;
+                }
+
+                ((Arreglo)elementos[identificador]).size = ((Arreglo)valor).size;
+                ((Arreglo)elementos[identificador]).array = ((Arreglo)valor).array;
             }
         }
 

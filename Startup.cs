@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using System.Web.Http;
 
 namespace ChatBot_Service
 {
@@ -21,6 +22,15 @@ namespace ChatBot_Service
             {
                 options.InputFormatters.Insert(0, new Formatter());
             });
+
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAllOrigins",
+                    builder => builder.AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                    .AllowCredentials());
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -32,6 +42,9 @@ namespace ChatBot_Service
             }
 
             app.UseMvc();
+
+            app.UseCors(builder =>
+                builder.AllowAnyOrigin());
 
             app.Run(async (context) =>
             {
