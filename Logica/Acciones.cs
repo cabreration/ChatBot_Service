@@ -57,7 +57,7 @@ namespace ChatBot_Service.Logica
                     guardarVariable(raiz, Data.ambitoGlobal);
                     break;
 
-                case "METODO":
+                case "PROCEDIMIENTO":
                     guardarProcedimiento(raiz);
                     break;
 
@@ -213,7 +213,7 @@ namespace ChatBot_Service.Logica
                 }
                 else {
                     tipo = root.ChildNodes[1].ChildNodes[0].Term.Name;
-                    Data.main = new Procedimiento(nombre, tipo, root.ChildNodes[4]);
+                    Data.main = new Procedimiento(nombre, tipo, root.ChildNodes[3]);
                     if (root.ChildNodes[2].ChildNodes.Count == 2)
                     {
                         Simbolo insert = parametroASimbolo(root.ChildNodes[2]);
@@ -230,7 +230,7 @@ namespace ChatBot_Service.Logica
 
         public Simbolo parametroASimbolo(ParseTreeNode parametro)
         {
-            string tipo = parametro.ChildNodes[1].Term.Name;
+            string tipo = parametro.ChildNodes[1].ChildNodes[0].Term.Name;
             string id = parametro.ChildNodes[0].FindTokenAndGetText();
             Simbolo retorno = new Simbolo(tipo, id);
             return retorno;
@@ -238,7 +238,7 @@ namespace ChatBot_Service.Logica
 
         public Arreglo parametroArreglo(ParseTreeNode parametro)
         {
-            string tipo = parametro.ChildNodes[1].Term.Name;
+            string tipo = parametro.ChildNodes[1].ChildNodes[0].Term.Name;
             string id = parametro.ChildNodes[0].FindTokenAndGetText();
             Arreglo retorno = new Arreglo(0, id, tipo);
             return retorno;
@@ -267,6 +267,7 @@ namespace ChatBot_Service.Logica
 
             try {
                 Data.insertarMetodo(meth);
+                List<Procedimiento> aux = Data.procedimientos;
             }
             catch (Exception e) {
                 //guardar error semantico

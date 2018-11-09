@@ -1,3 +1,5 @@
+
+
 metodo1 : String() 
 {
 	Print("hola mundo");

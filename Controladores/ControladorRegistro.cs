@@ -73,6 +73,9 @@ namespace ChatBot_Service.Controladores
             Data.usuarios.Add(user.correo, user);
 
             string usuarios = stringifyUsers();
+
+            System.IO.File.WriteAllText("usuarios.json", usuarios);
+
             return true;
         }
 

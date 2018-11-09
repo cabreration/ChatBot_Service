@@ -64,6 +64,7 @@ namespace ChatBot_Service.Controladores
                 Tabla aux = Data.ambitoGlobal;
                 List<Procedimiento> metodos = Data.procedimientos;
                 List<string> imp = Data.impresiones;
+                Procedimiento main = Data.main;
             }
 
             string retorno = crearJson(Data.impresiones, Data.errores).ToString();

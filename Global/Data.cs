@@ -18,6 +18,7 @@ namespace ChatBot_Service.Global
         public static ParseTreeNode raiz;
         public static List<string> impresiones;
         public static Hashtable usuarios;
+        public static string usuarioActual;
 
         private static bool contieneMetodo(Procedimiento procedimiento) {
 

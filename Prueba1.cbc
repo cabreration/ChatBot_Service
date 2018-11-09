@@ -1,21 +1,9 @@
 
 Import "Test_02.cbc";
-Import "Test_03.cbc";
 Import "Test_04.cbc";
 
-a, b, c, d : String;
-e, f, g, h : Int;
-i, j, k, l : Double;
-m, n, o, p : Bool;
-q, r, s, t : Char;
-
-Main : String(entrada : String) 
-{
-	Print(one);
-	Print(two);
-	Print(three);
-	Print(four);
-	Print(five);
-	Return "archivo actual";
+Main: String(one : Int) {
+	Return "Llegaste al main";
 }
+
 

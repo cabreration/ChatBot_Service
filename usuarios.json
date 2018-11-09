@@ -1,0 +1,23 @@
+[
+  {
+    "nombre": "Javier ",
+    "apellido": "Cabrera",
+    "dpi": "2976082070101",
+    "password": "nosecomosellama",
+    "correo": "j.a.cabrerapuente@gmail.com"
+  },
+  {
+    "nombre": "Gilbert",
+    "apellido": "Arrazola",
+    "dpi": "23456",
+    "password": "nose",
+    "correo": "Gilbert@gmail.com"
+  },
+  {
+    "nombre": "Josue",
+    "apellido": "Cabrera",
+    "dpi": "456789",
+    "password": "nose",
+    "correo": "josue@gmail.com"
+  }
+]

@@ -1,6 +1,23 @@
-indices : Int [5];
+//indices : Int [5];
 //indices = {10, 20, 30, 40, 50};
 //Print(indices[3]);
 
-Indices : String[1+1+1+1] = {"juan", "jose", "pedro", "tamara"};
+//Indices : String[1+1+1+1] = {"juan", "jose", "pedro", "tamara"};
 //Print(nombres[0] + ", " + nombres[3] + "!");
+
+Metodo1 : String() {
+	Return "Llegaste al metodo1";
+}
+
+Metodo2: Int(one : String) {
+	Print("llegaste al metodo 2");
+	Return 2;
+}
+
+Metodo3: Void(one : String[], two : Int[]) {
+	Print("Llegaste al metodo 3");
+}
+
+Metodo4: Bool(one: Bool, two: Int, three: Double) {
+	Return False;
+}

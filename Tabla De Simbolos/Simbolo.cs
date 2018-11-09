@@ -37,7 +37,7 @@ namespace ChatBot_Service.Tabla_De_Simbolos
                 case "Char":
                     valor = '\u0000';
                     break;
-                case "Boolean":
+                case "Bool":
                     valor = false;
                     break;
             }
