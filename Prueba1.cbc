@@ -4,6 +4,11 @@ Import "Test_04.cbc";
 
 Main: String(one : Int) {
 	Return "Llegaste al main";
+	While (one < 100) 
+	{
+		one++;
+		Print(one);
+	}
 }
 
 

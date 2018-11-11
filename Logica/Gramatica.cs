@@ -183,9 +183,9 @@ namespace ChatBot_Service.Logica
                 | FUNCION_PRINT + finSentencia;
 
             PRINCIPAL.Rule = principal + dosPuntos + vacio + parentesisA + parentesisC + llaveA + OPCION_SENTENCIAS + llaveC
-                | principal + dosPuntos + TIPO_DATO + parentesisA + PARAMETRO + parentesisC
+                | principal + dosPuntos + TIPO_DATO + parentesisA + LISTA_PARAMETROS + parentesisC
                 + llaveA + OPCION_SENTENCIAS + llaveC
-                | principal + dosPuntos + vacio + parentesisA + PARAMETRO + parentesisC + llaveA + OPCION_SENTENCIAS + llaveC
+                | principal + dosPuntos + vacio + parentesisA + LISTA_PARAMETROS + parentesisC + llaveA + OPCION_SENTENCIAS + llaveC
                 | principal + dosPuntos + TIPO_DATO + parentesisA + parentesisC + llaveA + OPCION_SENTENCIAS + llaveC;
 
             // Sintaxis de las Declaraciones
