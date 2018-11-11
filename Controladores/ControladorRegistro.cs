@@ -33,14 +33,14 @@ namespace ChatBot_Service.Controladores
 
         // POST api/<controller>
         [HttpPost]
-        public Respuesta Post([FromBody]Usuario user)
+        public bool Post([FromBody]Usuario user)
         {
             Usuario us = user;
             bool respuesta = insertarUsuario(user);
 
             if (respuesta)
-                return new Respuesta(1);
-            else return new Respuesta(0);
+                return true;
+            else return false;
         }
 
         // PUT api/<controller>/5

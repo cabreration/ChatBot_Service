@@ -24,6 +24,8 @@ namespace ChatBot_Service
             Data.raiz = null;
             Data.impresiones = null;
             Data.usuarioActual = null;
+            Data.mensajesActuales = new List<Mensaje>();
+            Mensaje men = new Mensaje();
             cargarUsuarios();
             CreateWebHostBuilder(args).Build().Run();
         }

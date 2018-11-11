@@ -21,6 +21,7 @@ namespace ChatBot_Service.Global
         public static string usuarioActual;
         public static bool returner;
         public static bool breaker;
+        public static List<Mensaje> mensajesActuales;
 
         private static bool contieneMetodo(Procedimiento procedimiento) {
 

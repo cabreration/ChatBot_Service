@@ -190,21 +190,21 @@ namespace ChatBot_Service.Logica
             string tipo = null;
             if (root.ChildNodes.Count == 3) {
                 if (root.ChildNodes[1].Term.Name.Equals("Void"))
-                    Data.main = new Procedimiento(nombre, "Void", root.ChildNodes[2]);
+                    Data.main = new Procedimiento("Void", nombre, root.ChildNodes[2]);
                 else {
                     tipo = root.ChildNodes[1].ChildNodes[0].Term.Name;
-                    Data.main = new Procedimiento(nombre, tipo, root.ChildNodes[2]);
+                    Data.main = new Procedimiento(tipo, nombre, root.ChildNodes[2]);
                 }
             }
             else if (root.ChildNodes.Count == 4) {
                 if (root.ChildNodes[1].Term.Name.Equals("Void"))
                 {
-                    Data.main = new Procedimiento(nombre, "Void", root.ChildNodes[3]);
+                    Data.main = new Procedimiento("Void", nombre, root.ChildNodes[3]);
                     
                 }
                 else {
                     tipo = root.ChildNodes[1].ChildNodes[0].Term.Name;
-                    Data.main = new Procedimiento(nombre, tipo, root.ChildNodes[3]);
+                    Data.main = new Procedimiento(tipo, nombre, root.ChildNodes[3]);
                 }
                 ArrayList parametros = obtenerParametros(root.ChildNodes[2]);
                 Data.main.parametros = parametros;
@@ -931,7 +931,7 @@ namespace ChatBot_Service.Logica
                 try
                 {
                     List<Parametro> pars = obtenerValoresDados(llamada.ChildNodes[1], ambito);
-                    scope = construirTabla(procedimiento.parametros, pars, ambito);
+                    scope = construirTabla(procedimiento.parametros, pars, Data.ambitoGlobal);
                 }
                 catch (Exception e)
                 {
@@ -941,7 +941,7 @@ namespace ChatBot_Service.Logica
             }
             else
             {
-                scope = new Tabla(ambito);
+                scope = new Tabla(Data.ambitoGlobal);
                 scope.heredar();
             }
 
@@ -1146,6 +1146,13 @@ namespace ChatBot_Service.Logica
                         break;
 
                     case "LLAMADA":
+                        try {
+                            llamada(instruccion, ambito);
+                        }
+                        catch (Exception e)
+                        {
+                            //guardar error semantico
+                        }
                         break;
 
                     case "RETORNO":
@@ -1610,6 +1617,14 @@ namespace ChatBot_Service.Logica
                     break;
 
                 case "LLAMADA":
+                    try
+                    {
+                        llamada(sentencia, ambito);
+                    }
+                    catch (Exception e)
+                    {
+                        //guardar error semantico
+                    }
                     break;
 
                 case "RETORNO":
@@ -1699,7 +1714,11 @@ namespace ChatBot_Service.Logica
                 tablaMain.insertarConValor(parametro);
             }
 
-            Retorno returner = ejecutarSentencias(sentencias, tablaMain);
+            if (sentencias.ChildNodes.Count == 0)
+                return null;
+
+            Retorno returner = ejecutarSentencias(sentencias.ChildNodes[0], tablaMain);
+
             switch (tipo)
             {
                 case "String":

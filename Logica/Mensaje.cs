@@ -8,5 +8,6 @@ namespace ChatBot_Service.Logica
     public class Mensaje
     {
         public string mensaje { get; set; }
+        public string nombre { get; set; }
     }
 }

@@ -1,14 +1,13 @@
 
-Import "Test_02.cbc";
-Import "Test_04.cbc";
+a : Int = 1;
 
-Main: String(one : Int) {
-	Return "Llegaste al main";
-	While (one < 100) 
-	{
-		one++;
-		Print(one);
+Main: String(one : String) {
+	b : Int = 10;
+	While(a < 10) {
+		a++;
+		b++;
 	}
+	Return one + a + " " + b;
 }
 
 

@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ChatBot_Service.Global;
+using ChatBot_Service.Logica;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 
@@ -29,8 +32,42 @@ namespace ChatBot_Service.Controladores
 
         // POST api/<controller>
         [HttpPost]
-        public void Post([FromBody]string value)
+        public Mensaje[] Post([FromBody]Mensaje value)
         {
+            Mensaje mensa = new Mensaje();
+            mensa.nombre = Data.usuarioActual;
+            mensa.mensaje = value.mensaje;
+            Data.mensajesActuales.Add(mensa);
+            //desde aqui mando a llamar al Main con value como Parametro
+            ArrayList parametros = new ArrayList();
+            parametros.Add(value.mensaje);
+            Acciones accion = new Acciones();
+            try
+            {
+                Mensaje response = new Mensaje();
+                response.nombre = "Bot";
+                
+                object respuesta = accion.ejecutarMain(parametros);
+                if (!(respuesta is string))
+                    response.mensaje = "Su mensaje no pudo ser analizado - Fatal error";
+                else response.mensaje = (string)respuesta;
+
+                Data.mensajesActuales.Add(response);
+                Mensaje[] resp = new Mensaje[Data.mensajesActuales.Count];
+                for (int i = 0; i < resp.Length; i++)
+                {
+                    resp[i] = (Mensaje)Data.mensajesActuales[i];
+                }
+                return resp;
+            }
+            catch (Exception e) {
+                Mensaje[] resp = new Mensaje[Data.mensajesActuales.Count];
+                for (int i = 0; i < resp.Length; i++)
+                {
+                    resp[i] = (Mensaje)Data.mensajesActuales[i];
+                }
+                return resp;
+            }
         }
 
         // PUT api/<controller>/5

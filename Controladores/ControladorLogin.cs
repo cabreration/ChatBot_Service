@@ -31,15 +31,16 @@ namespace ChatBot_Service.Controladores
 
         // POST api/<controller>
         [HttpPost]
-        public Response Post([FromBody]LogIn value)
+        public bool Post([FromBody]LogIn value)
         {
             if (logIn(value.correo, value.password))
             {
                 setCurrentUser(value.correo);
-                return new Response(1);
+                Data.mensajesActuales = new List<Mensaje>();
+                return true;
             }
             else
-                return new Response(0);
+                return false;
         }
 
         // PUT api/<controller>/5
