@@ -19,6 +19,8 @@ namespace ChatBot_Service.Global
         public static List<string> impresiones;
         public static Hashtable usuarios;
         public static string usuarioActual;
+        public static bool returner;
+        public static bool breaker;
 
         private static bool contieneMetodo(Procedimiento procedimiento) {
 

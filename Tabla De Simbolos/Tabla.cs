@@ -21,7 +21,6 @@ namespace ChatBot_Service.Tabla_De_Simbolos
             elementos = new Hashtable();
         }
 
-
         public object obtenerElemento(string identificador) {
             if (!(contiene(identificador)))
                 throw new Exception("La variable a la que esta intentando acceder no existe en el ambito actual");
@@ -29,6 +28,7 @@ namespace ChatBot_Service.Tabla_De_Simbolos
             object retorno = elementos[identificador];
             return retorno;
         }
+
         public bool contiene(string identificador) {
             return this.elementos.Contains(identificador);
         }
@@ -63,6 +63,11 @@ namespace ChatBot_Service.Tabla_De_Simbolos
                 case "Double":
                     if (simbolo.valor is double)
                         elementos.Add(simbolo.identificador, simbolo);
+                    else if (simbolo.valor is int)
+                    {
+                        simbolo.valor = Convert.ToDouble(simbolo.valor);
+                        elementos.Add(simbolo.identificador, simbolo);
+                    }
                     else throw new Exception("el valor asignado a la variable " + simbolo.identificador
                         + " no es de tipo Double");
                     break;
@@ -70,8 +75,10 @@ namespace ChatBot_Service.Tabla_De_Simbolos
                 case "String":
                     if (simbolo.valor is string)
                         elementos.Add(simbolo.identificador, simbolo);
-                    else throw new Exception("el valor asignado a la variable " + simbolo.identificador
-                        + " no es de tipo String");
+                    else if (simbolo.valor is int) {
+                        simbolo.valor = Convert.ToString(simbolo.valor);
+                        elementos.Add(simbolo.identificador, simbolo);
+                    }
                     break;
 
                 case "Bool":
@@ -118,8 +125,8 @@ namespace ChatBot_Service.Tabla_De_Simbolos
                     case "String":
                         if (valor is string)
                             ((Simbolo)elementos[identificador]).valor = valor;
-                        else throw new Exception("el valor que intenta darle a la variable " + identificador
-                            + " no es de tipo String");
+                        else
+                            ((Simbolo)elementos[identificador]).valor = Convert.ToString(valor);
                         break;
 
                     case "Bool":
@@ -172,7 +179,11 @@ namespace ChatBot_Service.Tabla_De_Simbolos
                 }
 
                 ((Arreglo)elementos[identificador]).size = ((Arreglo)valor).size;
-                ((Arreglo)elementos[identificador]).array = ((Arreglo)valor).array;
+                for (int i = 0; i < ((Arreglo)valor).size; i++)
+                {
+                    ((Arreglo)elementos[identificador]).array[i] = ((Arreglo)valor).array[i];
+                }
+                
             }
         }
 

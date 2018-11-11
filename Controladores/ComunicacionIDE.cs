@@ -114,7 +114,11 @@ namespace ChatBot_Service.Controladores
 
             if (errores != null && errores.Count > 0)
             {
-                errs = new JArray(errores);
+                errs = new JArray();
+                foreach (ErrorC er in errores) {
+                    JObject objE = JObject.FromObject(er);
+                    errs.Add(objE);
+                }
                 retorno.Add("Errores", errs);
             }
             

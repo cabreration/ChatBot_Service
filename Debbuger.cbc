@@ -1,9 +1,2 @@
-four : Int = 'b' + 27;
-one : Double;
-two, three, five, six: Bool = True;
-Print(four);
-Print(one);
-Print(two);
-Print(three);
-Print(five);
-Print(six);
+variable : Int[4] = {4, 4, 4, 4};
+Print(variable[2]);

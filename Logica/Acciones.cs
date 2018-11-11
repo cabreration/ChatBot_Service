@@ -16,7 +16,7 @@ namespace ChatBot_Service.Logica
 
             switch (raiz.Term.Name) {
 
-                case "INICIO":
+                case "INICIO": // esta listo
                     if (raiz.ChildNodes.Count == 2)
                     {
                         reconocer(raiz.ChildNodes[0], actual);
@@ -26,12 +26,12 @@ namespace ChatBot_Service.Logica
                         reconocer(raiz.ChildNodes[0], actual);
                     break;
 
-                case "ENCABEZADO":
+                case "ENCABEZADO": //esta listo
                     foreach (ParseTreeNode root in raiz.ChildNodes)
                         reconocer(root, actual);
                     break;
 
-                case "IMPORT":
+                case "IMPORT": //esta listo
                     try
                     {
                         string archivo = limpiarCadena(raiz.ChildNodes[1].FindTokenAndGetText());
@@ -43,25 +43,25 @@ namespace ChatBot_Service.Logica
                     }
                     break;
 
-                case "LISTA_ACCIONES":
+                case "LISTA_ACCIONES": // esta listo
                     foreach (ParseTreeNode root in raiz.ChildNodes)
                         reconocer(root, actual);
                     break;
 
-                case "ACCION":
+                case "ACCION": //esta listo
                     if (raiz.ChildNodes.Count == 1)
                         reconocer(raiz.ChildNodes[0], actual);
                     break;
 
-                case "DECLARACION":
+                case "DECLARACION": // esta listo
                     guardarVariable(raiz, Data.ambitoGlobal);
                     break;
 
-                case "PROCEDIMIENTO":
+                case "PROCEDIMIENTO": // esta listo
                     guardarProcedimiento(raiz);
                     break;
 
-                case "PRINCIPAL":
+                case "PRINCIPAL": // esta listo
                     try {
                         if (actual)
                             guardarPrincipal(raiz);
@@ -71,7 +71,7 @@ namespace ChatBot_Service.Logica
                     }
                     break;
 
-                case "ASIGNACION":
+                case "ASIGNACION": // esta listo
                     if (raiz.ChildNodes[2].Term.Name.Equals("EXPRESION_LOGICA"))
                         actualizarValor(raiz, Data.ambitoGlobal);
                     else if (raiz.ChildNodes[2].Term.Name.Equals("LISTA_DATOS"))
@@ -89,11 +89,11 @@ namespace ChatBot_Service.Logica
                     }
                     break;
 
-                case "DECLARACION_ARREGLO":
+                case "DECLARACION_ARREGLO": // esta listo
                     guardarArreglo(raiz, Data.ambitoGlobal);
                     break;
 
-                case "ASIGNACION_POSICION":
+                case "ASIGNACION_POSICION": // esta listo
                     try
                     {
                         asignarAPosicion(raiz, Data.ambitoGlobal);
@@ -113,7 +113,7 @@ namespace ChatBot_Service.Logica
                             Data.ambitoGlobal);
                     break;
 
-                case "FUNCION_PRINT":
+                case "FUNCION_PRINT": // listo
                     Imprimir(raiz.ChildNodes[1], Data.ambitoGlobal);
                     break;
             }
@@ -313,7 +313,7 @@ namespace ChatBot_Service.Logica
                 tamanio = ((Simbolo)tamanio).valor;
 
             if (!(tamanio is int))
-                throw new Exception("El argumento que intenta usar como tamanio del arreglo no es de tipo entero");
+                throw new Exception("El argumento que intenta usar como dimension del arreglo no es de tipo entero");
             string identificador = root.ChildNodes[0].FindTokenAndGetText();
             string tipo = root.ChildNodes[1].ChildNodes[0].Term.Name;
             Arreglo array = new Arreglo((int)tamanio, identificador, tipo);
@@ -343,7 +343,6 @@ namespace ChatBot_Service.Logica
             
         }
 
-        //falta un elemento hasta el final
         public object obtenerValor(ParseTreeNode root, Tabla ambito) {
             if (root.Term.Name.Equals("EXPRESION_LOGICA"))
             {
@@ -422,10 +421,30 @@ namespace ChatBot_Service.Logica
                 }
                 else if (root.ChildNodes.Count == 4)
                 {
-
+                    try
+                    {
+                        return arregloConNodo(root, ambito);
+                    }
+                    catch (Exception e)
+                    {
+                        //guardar error semantico
+                    }
                 }
             }
             return null;
+        }
+
+        public object arregloConNodo(ParseTreeNode spec, Tabla ambito) {
+            string identificador = spec.ChildNodes[0].FindTokenAndGetText();
+
+            object num = obtenerValor(spec.ChildNodes[2], ambito);
+            if (num is Simbolo)
+                num = ((Simbolo)num).valor;
+
+            if (!(num is int))
+                throw new Exception("El parametro especificado no representa un entero para acceder al arreglo");
+
+            return accesoArreglo(identificador, (int)num, ambito);
         }
 
         public Arreglo buscarArreglo(string identificador, Tabla ambito)
@@ -685,7 +704,7 @@ namespace ChatBot_Service.Logica
             return retorno;
         }
 
-        //no esta terminada, faltan llamadas y la funcion obtener usuario
+        //no esta terminada, faltan llamadas
         public object aritmetica1(ParseTreeNode root, Tabla ambito) {
             object retorno = null;
 
@@ -716,7 +735,9 @@ namespace ChatBot_Service.Logica
                         break;
 
                     case "OBTENER_USUARIO":
-                        break;
+                        if (Data.usuarioActual == null)
+                            return "Javier Cabrera";
+                        else return Data.usuarioActual;
 
                     case "verdadero":
                         return true;
@@ -791,7 +812,7 @@ namespace ChatBot_Service.Logica
             try
             {
                 object antiguo = ambito.obtenerValor(identificador);
-                object valor = Calculadora.incremento(antiguo);
+                object valor = Calculadora.decremento(antiguo);
                 ambito.actualizarValor(identificador, valor);
             }
             catch (Exception e)
@@ -914,6 +935,7 @@ namespace ChatBot_Service.Logica
             return retorno;
         }
 
+        //no esta terminado, falta arreglarlo
         public object llamada(ParseTreeNode llamada, Tabla ambito)
         {
             object retorno = null;
@@ -940,15 +962,14 @@ namespace ChatBot_Service.Logica
                 scope.heredar();
             }
 
-            Retorno valor = ejecutarSentencias(procedimiento.root, scope);
-            if (!(procedimiento.tipo.Equals(valor.tipo)))
-                throw new Exception("El tipo de retorno esperado no concuerda con el recibido");
+            object valor = ejecutarSentencias(procedimiento.root, scope);
+            //if (!(procedimiento.tipo.Equals(valor.tipo)))
+                //throw new Exception("El tipo de retorno esperado no concuerda con el recibido");
 
-            retorno = valor.valor;
+            //retorno = valor.valor;
             return retorno;
         }
 
-        //me falta validar que tambien los arreglos puedan ser parametros
         public Tabla construirTabla(ArrayList parametros, List<Parametro> valores, Tabla padre)
         {
             Tabla retorno = new Tabla(padre);
@@ -1042,78 +1063,586 @@ namespace ChatBot_Service.Logica
         }
 
         public Retorno ejecutarSentencias(ParseTreeNode sentencias, Tabla ambito) {
-            Retorno retorno = new Retorno("quemado", 0);
+            Retorno retorno = new Retorno();
             foreach (ParseTreeNode hijo in sentencias.ChildNodes)
             {
-                if (retorno.estado == 0)
+                ParseTreeNode instruccion = hijo.ChildNodes[0];
+                switch (instruccion.Term.Name)
                 {
-                    ParseTreeNode instruccion = hijo.ChildNodes[0];
-                    switch (instruccion.Term.Name)
+                    case "DECLARACION":
+                    guardarVariable(instruccion, ambito);
+                    break;
+
+                    case "ASIGNACION":
+                    if (instruccion.ChildNodes[2].Term.Name.Equals("EXPRESION_LOGICA"))
+                        actualizarValor(instruccion, ambito);
+                    else if (instruccion.ChildNodes[2].Term.Name.Equals("LISTA_DATOS"))
                     {
-                        case "DECLARACION":
-                            break;
-
-                        case "ASIGNACION":
-                            break;
-
-                        case "DECLARACION_ARREGLO":
-                            break;
-
-                        case "ASIGNACION_POSICION":
-                            break;
-
-                        case "IF":
-                            break;
-
-                        case "FOR":
-                            break;
-
-                        case "SWITCH":
-                            break;
-
-                        case "WHILE":
-                            break;
-
-                        case "DO_WHILE":
-                            break;
-
-                        case "FUNCION_PRINT":
-                            break;
-
-                        case "DINCREMENTO":
-                            break;
-
-                        case "LLAMADA":
-                            break;
-
-                        case "RETORNO":
-                            break;
+                        try
+                        {
+                            string id = instruccion.ChildNodes[0].FindTokenAndGetText();
+                            Arreglo array = buscarArreglo(id, ambito);
+                            guardarConValorArreglo(instruccion.ChildNodes[2], array, Data.ambitoGlobal);
+                        }
+                        catch (Exception e)
+                        {
+                                    //guardar error semantico
+                        }
                     }
-                }
-                else if (retorno.estado == 1)
-                {
+                    break;
 
-                }
-                else if (retorno.estado == 2)
-                {
+                    case "DECLARACION_ARREGLO":
+                        guardarArreglo(instruccion, ambito);
+                        break;
 
+                    case "ASIGNACION_POSICION":
+                        try
+                        {
+                            asignarAPosicion(instruccion, ambito);
+                        }
+                        catch (Exception e)
+                        {
+                            //guardar error semantico
+                        }
+                        break;
+
+                    case "IF":
+                        Tabla tablaIf = new Tabla(ambito);
+                        tablaIf.heredar();
+                        break;
+
+                    case "FOR":
+                        Tabla tablaFor = new Tabla(ambito);
+                        tablaFor.heredar();
+                        break;
+
+                    case "SWITCH":
+                        Tabla tablaSwitch = new Tabla(ambito);
+                        tablaSwitch.heredar();
+                        break;
+
+                    case "WHILE":
+                        Tabla tablaWhile = new Tabla(ambito);
+                        tablaWhile.heredar();
+                        break;
+
+                    case "DO_WHILE":
+                        Tabla tablaDo = new Tabla(ambito);
+                        tablaDo.heredar();
+                        break;
+
+                    case "FUNCION_PRINT":
+                        Imprimir(instruccion.ChildNodes[1], ambito);
+                        break;
+
+                    case "DINCREMENTO":
+                        if (instruccion.ChildNodes[1].Term.Name.Equals("++"))
+                            incrementar(instruccion.ChildNodes[0].FindTokenAndGetText(),
+                                ambito);
+                        else if (instruccion.ChildNodes[1].Term.Name.Equals("--"))
+                            decrementar(instruccion.ChildNodes[0].FindTokenAndGetText(),
+                                ambito);
+                        break;
+
+                    case "LLAMADA":
+                        break;
+
+                    case "RETORNO":
+                        Data.returner = true;
+                        ambito.escalarAmbito();
+                        retorno = determinarRetorno(instruccion, ambito);
+                        return retorno;
+
+                    case "Break":
+                        Data.breaker = true;
+                        break;
                 }
             }
+            ambito.escalarAmbito();
             return retorno;
         }
 
-        //no esta terminado
-        public object While(ParseTreeNode root, Tabla ambito)
+        public Retorno While(ParseTreeNode root, Tabla ambito)
         {
-
+            Retorno retorno = null;
             try
             {
+                if (root.ChildNodes.Count == 3)
+                {
+                    object cond = obtenerValor(root.ChildNodes[1], ambito);
+                    if (cond is Simbolo)
+                        cond = ((Simbolo)cond).valor;
 
+                    if (!(cond is bool))
+                        throw new Exception("La condicion especificada no es de tipo booleano");
+                    
+                    bool condicion = (bool)cond;
+                    while (condicion)
+                    {
+                        retorno = ejecutarSentencias(root.ChildNodes[2], ambito);
+                        condicion = (bool)obtenerValor(root.ChildNodes[1], ambito);
+                        ambito.escalarAmbito();
+                        Tabla padre = ambito.padre;
+                        ambito = new Tabla(padre);
+                        ambito.heredar();
+                        condicion = (bool)obtenerValor(root.ChildNodes[1], ambito);
+                        if (Data.returner)
+                        {
+                            ambito.escalarAmbito();
+                            return retorno;
+                        }
+                        else if (Data.breaker) {
+                            Data.breaker = false;
+                            break;
+                        }
+                    }
+                }
             }
             catch (Exception e)
             {
                 //guardar error semantico
             }
+            return retorno;
+        }
+
+        public Retorno Do_While(ParseTreeNode root, Tabla ambito)
+        {
+            Retorno retorno = null;
+            try
+            {
+                if (root.ChildNodes.Count == 4)
+                {
+                    object cond = null;
+                    bool condicion = false;
+                    do
+                    {
+                        retorno = ejecutarSentencias(root.ChildNodes[1], ambito);
+                        cond = obtenerValor(root.ChildNodes[3], ambito);
+
+                        if (cond is Simbolo)
+                            cond = ((Simbolo)cond).valor;
+
+                        if (!(cond is bool))
+                            throw new Exception("La condicion indicada no evalua a un resultado booleano");
+
+                        condicion = (bool)cond;
+                        ambito.escalarAmbito();
+                        Tabla padre = ambito.padre;
+                        ambito = new Tabla(padre);
+                        ambito.heredar();
+                        if (Data.returner)
+                        {
+                            ambito.escalarAmbito();
+                            return retorno;
+                        }
+                        else if (Data.breaker)
+                        {
+                            Data.breaker = false;
+                            break;
+                        }
+                    }
+                    while (condicion);
+                }
+            }
+            catch (Exception e)
+            {
+                //guardar errores semanticos
+            }
+            ambito.escalarAmbito();
+            return retorno;
+        }
+
+        public Retorno If_Else(ParseTreeNode root, Tabla ambito)
+        {
+            Retorno retorno = null;
+            object condicion = obtenerValor(root.ChildNodes[1], ambito);
+
+            if (condicion is Simbolo)
+                condicion = ((Simbolo)condicion).valor;
+
+            if (!(condicion is bool))
+                throw new Exception("La condicion especificada en sentencia If no evalua a un valor booleano");
+            bool cond = (bool)condicion;
+            try
+            {
+                if (root.ChildNodes.Count == 3)
+                {
+                    if (root.ChildNodes[2].Term.Name.Equals("ELSE"))
+                    {
+                        if (!cond)
+                        {
+                            if (root.ChildNodes[2].ChildNodes.Count == 2)
+                            {
+                                retorno = ejecutarSentencias(root.ChildNodes[2].ChildNodes[1], ambito);
+                                if (Data.returner || Data.breaker)
+                                {
+                                    ambito.escalarAmbito();
+                                    return retorno;
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (cond)
+                        {
+                            retorno = ejecutarSentencias(root.ChildNodes[2], ambito);
+                            if (Data.returner || Data.breaker)
+                            {
+                                ambito.escalarAmbito();
+                                return retorno;
+                            }
+                        }
+                    }
+                }
+                else if (root.ChildNodes.Count == 4)
+                {
+                    if (cond)
+                    {
+                        retorno = ejecutarSentencias(root.ChildNodes[2], ambito);
+                        if (Data.returner || Data.breaker)
+                        {
+                            ambito.escalarAmbito();
+                            return retorno;
+                        }
+                    }
+                    else
+                    {
+                        if (root.ChildNodes[3].ChildNodes.Count == 2)
+                        {
+                            retorno = ejecutarSentencias(root.ChildNodes[3].ChildNodes[1], ambito);
+                            if (Data.returner || Data.breaker)
+                            {
+                                ambito.escalarAmbito();
+                                return retorno;
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                //guardar error semantico
+            }
+            ambito.escalarAmbito();
+            return retorno;
+        }
+
+        public Retorno For(ParseTreeNode root, Tabla ambito)
+        {
+            Retorno retorno = null;
+            try
+            {
+                if (root.ChildNodes.Count == 8)
+                {
+                    string id = root.ChildNodes[1].FindTokenAndGetText();
+                    string tipo = root.ChildNodes[2].ChildNodes[0].Term.Name;
+                    object valor = obtenerValor(root.ChildNodes[4], ambito);
+                    Simbolo contador = new Simbolo(tipo, id, valor);
+                    ambito.insertarConValor(contador);
+
+                    object cond = obtenerValor(root.ChildNodes[5], ambito);
+
+                    if (cond is Simbolo)
+                        cond = ((Simbolo)cond).valor;
+
+                    if (!(cond is bool))
+                        throw new Exception("La condicion especificada en sentencia For no evalua a un valor booleano");
+
+                    bool condicion = (bool)cond;
+                    while (condicion)
+                    {
+                        Tabla nueva = new Tabla(ambito);
+                        nueva.heredar();
+                        retorno = ejecutarSentencias(root.ChildNodes[7], nueva);
+                        if (root.ChildNodes[6].ChildNodes[1].Term.Name.Equals("++"))
+                            incrementar(id, nueva);
+                        else
+                            decrementar(id, nueva);
+
+                        nueva.escalarAmbito();
+
+                        condicion = (bool)obtenerValor(root.ChildNodes[5], ambito);
+                       
+                        if (Data.returner)
+                        {
+                            nueva.escalarAmbito();
+                            ambito.escalarAmbito();
+                            return retorno;
+                        }
+                        else if (Data.breaker)
+                        {
+                            Data.breaker = false;
+                            break;
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                //guardar error semantico
+            }
+            ambito.escalarAmbito();
+            return retorno;
+        }
+
+        public Retorno Switch(ParseTreeNode root, Tabla ambito)
+        {
+            Retorno retorno = null;
+            bool ejecutado = false;
+            try {              
+                object recurso = aritmetica1(root.ChildNodes[1], ambito);
+
+                if (!(recurso is Simbolo))
+                    throw new Exception("No se permiten este tipo de condiciones en la sentencia Switch");
+
+                Simbolo simbolo = (Simbolo)recurso;
+             
+                foreach (ParseTreeNode caso in root.ChildNodes[2].ChildNodes[0].ChildNodes)
+                {
+                    if (caso.ChildNodes.Count == 3)
+                    {
+                        object valorDelCaso = aritmetica1(caso.ChildNodes[1].ChildNodes[0], ambito);
+                        if (simbolo.tipo.Equals("String"))
+                        {
+                            if (!(valorDelCaso is string))
+                                throw new Exception("El valor de comparacion no es del tipo especificado " +
+                                    "en la sentencia Switch");
+
+                            if (((string)valorDelCaso).Equals((string)simbolo.valor))
+                            {
+                                Tabla tablaCaso = new Tabla(ambito);
+                                tablaCaso.heredar();
+                                foreach (ParseTreeNode sentencia in caso.ChildNodes[2].ChildNodes)
+                                {
+                                    retorno = ejecutarSentencia(sentencia, tablaCaso);
+                                    ejecutado = true;
+                                    if (Data.returner) {
+                                        tablaCaso.escalarAmbito();
+                                        ambito.escalarAmbito();
+                                        return retorno;
+                                    }
+                                    else if (Data.breaker)
+                                    {
+                                        Data.breaker = false;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        else if (simbolo.tipo.Equals("Double"))
+                        {
+                            if (!(valorDelCaso is double))
+                                throw new Exception("El valor de comparacion no es del tipo especificado" +
+                                    " en la sentencia Switch");
+
+                            if ((double)valorDelCaso == (double)simbolo.valor)
+                            {
+                                Tabla tablaCaso = new Tabla(ambito);
+                                tablaCaso.heredar();
+                                foreach (ParseTreeNode sentencia in caso.ChildNodes[2].ChildNodes)
+                                {
+                                    retorno = ejecutarSentencia(sentencia, tablaCaso);
+                                    ejecutado = true;
+                                    if (Data.returner)
+                                    {
+                                        tablaCaso.escalarAmbito();
+                                        ambito.escalarAmbito();
+                                        return retorno;
+                                    }
+                                    else if (Data.breaker)
+                                    {
+                                        Data.breaker = false;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        else if (simbolo.tipo.Equals("Int"))
+                        {
+                            if (!(valorDelCaso is int))
+                                throw new Exception("El valor de comparacion no es del tipo especificado " +
+                                    "en la sentencia Switch");
+
+                            if ((int)valorDelCaso == (int)simbolo.valor)
+                            {
+                                Tabla tablaCaso = new Tabla(ambito);
+                                tablaCaso.heredar();
+                                foreach (ParseTreeNode sentencia in caso.ChildNodes[2].ChildNodes)
+                                {
+                                    retorno = ejecutarSentencia(sentencia, tablaCaso);
+                                    ejecutado = true;
+                                    if (Data.returner)
+                                    {
+                                        tablaCaso.escalarAmbito();
+                                        ambito.escalarAmbito();
+                                        return retorno;
+                                    }
+                                    else if (Data.breaker)
+                                    {
+                                        Data.breaker = false;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                if (root.ChildNodes[2].ChildNodes.Count == 2 && !ejecutado)
+                {
+                    Tabla tablaCaso = new Tabla(ambito);
+                    tablaCaso.heredar();
+                    ParseTreeNode def = root.ChildNodes[2].ChildNodes[1];
+                    if (def.ChildNodes.Count == 2) {
+                        foreach (ParseTreeNode sentencia in def.ChildNodes[1].ChildNodes)
+                        {
+                            retorno = ejecutarSentencia(sentencia, tablaCaso);
+                            if (Data.returner)
+                            {
+                                tablaCaso.escalarAmbito();
+                                ambito.escalarAmbito();
+                                return retorno;
+                            }
+                            else if (Data.breaker)
+                            {
+                                Data.breaker = false;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                //guardar error semantico
+            }
+
+            ambito.escalarAmbito();
+            return retorno;
+        }
+
+        public Retorno ejecutarSentencia(ParseTreeNode sentencia, Tabla ambito)
+        {
+            Retorno retorno = null;
+            switch (sentencia.Term.Name)
+            {
+                case "DECLARACION":
+                    guardarVariable(sentencia, ambito);
+                    break;
+
+                case "ASIGNACION":
+                    if (sentencia.ChildNodes[2].Term.Name.Equals("EXPRESION_LOGICA"))
+                        actualizarValor(sentencia, ambito);
+                        else if (sentencia.ChildNodes[2].Term.Name.Equals("LISTA_DATOS"))
+                        {
+                            try
+                            {
+                                string id = sentencia.ChildNodes[0].FindTokenAndGetText();
+                                Arreglo array = buscarArreglo(id, ambito);
+                                guardarConValorArreglo(sentencia.ChildNodes[2], array, Data.ambitoGlobal);
+                            }
+                            catch (Exception e)
+                            {
+                                    //guardar error semantico
+                            }
+                        }
+                    break;
+
+                case "DECLARACION_ARREGLO":
+                    guardarArreglo(sentencia, ambito);
+                    break;
+
+                case "ASIGNACION_POSICION":
+                    try
+                    {
+                        asignarAPosicion(sentencia, ambito);
+                    }
+                    catch (Exception e)
+                    {
+                        //guardar error semantico
+                    }
+                    break;
+
+                case "IF":
+                    Tabla tablaIf = new Tabla(ambito);
+                    tablaIf.heredar();
+                    break;
+
+                case "FOR":
+                    Tabla tablaFor = new Tabla(ambito);
+                    tablaFor.heredar();
+                    break;
+
+                case "SWITCH":
+                    Tabla tablaSwitch = new Tabla(ambito);
+                    tablaSwitch.heredar();
+                    break;
+
+                case "WHILE":
+                    Tabla tablaWhile = new Tabla(ambito);
+                    tablaWhile.heredar();
+                    break;
+
+                case "DO_WHILE":
+                    Tabla tablaDo = new Tabla(ambito);
+                    tablaDo.heredar();
+                    break;
+
+                case "FUNCION_PRINT":
+                    Imprimir(sentencia.ChildNodes[1], ambito);
+                    break;
+
+                case "DINCREMENTO":
+                    if (sentencia.ChildNodes[1].Term.Name.Equals("++"))
+                            incrementar(sentencia.ChildNodes[0].FindTokenAndGetText(),
+                            ambito);
+                    else if (sentencia.ChildNodes[1].Term.Name.Equals("--"))
+                               decrementar(sentencia.ChildNodes[0].FindTokenAndGetText(),
+                               ambito);
+                    break;
+
+                case "LLAMADA":
+                    break;
+
+                case "RETORNO":
+                    Data.returner = true;
+                    retorno = determinarRetorno(sentencia, ambito);
+                    return retorno;
+
+                case "Break":
+                    Data.returner = true;
+                    break;              
+            }
+            return retorno;
+        }
+
+        public Retorno determinarRetorno(ParseTreeNode valor, Tabla ambito)
+        {
+            Retorno retorno = null;
+
+            if (valor.ChildNodes.Count == 2)
+            {
+                object val = obtenerValor(valor.ChildNodes[1], ambito);
+
+                if (val is string)
+                    retorno = new Retorno("String", (string)val);
+                else if (val is int)
+                    retorno = new Retorno("Int", (int)val);
+                else if (val is double)
+                    retorno = new Retorno("Double", (double)val);
+                else if (val is bool)
+                    retorno = new Retorno("Bool", (bool)val);
+                else if (val is char)
+                    retorno = new Retorno("Char", (char)val);
+            }
+            else if (valor.ChildNodes.Count == 1)
+                retorno = new Retorno("Void");
+            return retorno;
+        }
+
+        public object ejecutarMain(Procedimiento main)
+        {
             return null;
         }
     }

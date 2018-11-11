@@ -9,17 +9,20 @@ namespace ChatBot_Service.Logica
     {
         public object valor;
         public string tipo;
-        public int estado; // 0 = normal, 1 = break, 2 = return void
 
-        public Retorno(string tipo, int estado) {
+        public Retorno(string tipo) {
             this.tipo = tipo;
-            this.estado = estado;
+            valor = null;
         }
 
-        public Retorno(string tipo, int estado, object valor) {
+        public Retorno(string tipo, object valor) {
             this.tipo = tipo;
-            this.estado = estado;
             this.valor = valor;
+        }
+
+        public Retorno() {
+            tipo = null;
+            valor = null;
         }
     }
 }

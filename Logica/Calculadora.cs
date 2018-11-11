@@ -426,7 +426,7 @@ namespace ChatBot_Service.Logica
                 else if (arg2 is bool)
                 {
                     if ((bool)arg2) return (int)arg1;
-                    else return 0;
+                    else return 1;
                 }
                 else if (arg2 is char)
                     return Convert.ToInt32(Math.Pow(Convert.ToDouble((int)arg1),
@@ -443,7 +443,7 @@ namespace ChatBot_Service.Logica
                 else if (arg2 is bool)
                 {
                     if ((bool)arg2) return (double)arg1;
-                    else return 0.0;
+                    else return 1.0;
                 }
                 else if (arg2 is char)
                     return Math.Pow((double)arg1, Convert.ToDouble(Convert.ToInt32((char)arg2)));
@@ -456,13 +456,13 @@ namespace ChatBot_Service.Logica
                 {
                     if ((bool)arg1)
                         return 1;
-                    else return 0;
+                    else return 1;
                 }
                 else if (arg2 is double)
                 {
                     if ((bool)arg1)
                         return 1.0;
-                    else return 0.0;
+                    else return 1.0;
                 }
                 else if (arg2 is bool)
                     throw new Exception("La operacion de potencia no puede realizarse con dos operandos booleanos");

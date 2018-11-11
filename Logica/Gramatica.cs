@@ -151,7 +151,6 @@ namespace ChatBot_Service.Logica
             NonTerminal CUERPO_SWITCH = new NonTerminal("CUERPO_SWITCH");
             NonTerminal LISTA_CASE = new NonTerminal("LISTA_CASE");
             NonTerminal VALOR = new NonTerminal("VALOR");
-            NonTerminal BREAK = new NonTerminal("BREAK");
             NonTerminal OPCION_SENTENCIAS = new NonTerminal("OPCION_SENTENCIAS");
 
             #endregion
@@ -251,6 +250,7 @@ namespace ChatBot_Service.Logica
                 | FUNCION_PRINT + finSentencia
                 | DINCREMENTO + finSentencia
                 | LLAMADA + finSentencia
+                | quebrar + finSentencia
                 | RETORNO;
 
             RETORNO.Rule = retornar + EXPRESION_LOGICA + finSentencia
@@ -272,31 +272,28 @@ namespace ChatBot_Service.Logica
             ELSE.Rule = sino + llaveA + LISTA_SENTENCIAS + llaveC
                 | sino + llaveA + llaveC;
 
-            //Break
-            BREAK.Rule = quebrar | Empty;
-
             //While
             WHILE.Rule = mientras + parentesisA + EXPRESION_LOGICA + parentesisC 
-                + llaveA + LISTA_SENTENCIAS + BREAK + llaveC
-                | mientras + parentesisA + EXPRESION_LOGICA + parentesisC + llaveA + BREAK + llaveC;
+                + llaveA + LISTA_SENTENCIAS + llaveC
+                | mientras + parentesisA + EXPRESION_LOGICA + parentesisC + llaveA + llaveC;
 
             //Do While
-            DO_WHILE.Rule = hacer + llaveA + LISTA_SENTENCIAS + BREAK + llaveC + mientras + parentesisA
+            DO_WHILE.Rule = hacer + llaveA + LISTA_SENTENCIAS + llaveC + mientras + parentesisA
                 + EXPRESION_LOGICA + parentesisC + finSentencia
-                | hacer + llaveA + BREAK + llaveC + mientras + parentesisA + EXPRESION_LOGICA + parentesisC + finSentencia;
+                | hacer + llaveA + llaveC + mientras + parentesisA + EXPRESION_LOGICA + parentesisC + finSentencia;
 
             //For
             FOR.Rule = para + parentesisA + identificador + dosPuntos + TIPO_DATO + asignacion + EXPRESION
                 + finSentencia + EXPRESION_LOGICA + finSentencia + DINCREMENTO + parentesisC + llaveA + LISTA_SENTENCIAS
-                + BREAK + llaveC
+                + llaveC
                 | para + parentesisA + identificador + dosPuntos + TIPO_DATO + asignacion + EXPRESION
-                + finSentencia + EXPRESION_LOGICA + finSentencia + DINCREMENTO + parentesisC + llaveA + BREAK + llaveC;
+                + finSentencia + EXPRESION_LOGICA + finSentencia + DINCREMENTO + parentesisC + llaveA + llaveC;
 
             DINCREMENTO.Rule = identificador + incremento
                 | identificador + decremento;
 
             //Switch
-            SWITCH.Rule = cambiar + parentesisA + EXPRESION_LOGICA + parentesisC + llaveA + CUERPO_SWITCH + llaveC;
+            SWITCH.Rule = cambiar + parentesisA + identificador + parentesisC + llaveA + CUERPO_SWITCH + llaveC;
 
             CUERPO_SWITCH.Rule = LISTA_CASE
                 | LISTA_CASE + DEFAULT;
@@ -304,16 +301,12 @@ namespace ChatBot_Service.Logica
             LISTA_CASE.Rule = MakePlusRule(LISTA_CASE, CASE)
                 | CASE;
 
-            CASE.Rule = caso + VALOR + dosPuntos + LISTA_SENTENCIAS + quebrar
-                | caso + VALOR + dosPuntos + LISTA_SENTENCIAS
-                | caso + VALOR + dosPuntos + quebrar
+            CASE.Rule = caso + VALOR + dosPuntos + LISTA_SENTENCIAS
                 | caso + VALOR + dosPuntos;
 
-            VALOR.Rule = cad | numero | car | verdadero | falso;
+            VALOR.Rule = cad | numero;
 
-            DEFAULT.Rule = defecto + dosPuntos + LISTA_SENTENCIAS + quebrar
-                | defecto + dosPuntos + LISTA_SENTENCIAS
-                | defecto + dosPuntos + quebrar
+            DEFAULT.Rule = defecto + dosPuntos + LISTA_SENTENCIAS
                 | defecto + dosPuntos;
 
             //Llamadas
