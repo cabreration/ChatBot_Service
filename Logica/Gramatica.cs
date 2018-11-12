@@ -318,8 +318,6 @@ namespace ChatBot_Service.Logica
                 | EXPRESION_LOGICA + or + EXPRESION_LOGICA
                 | EXPRESION_LOGICA + xor + EXPRESION_LOGICA
                 | not + EXPRESION_LOGICA
-                | identificador + FUNCION_COMPARAR
-                | identificador + corcheteA + EXPRESION + corcheteC + FUNCION_COMPARAR
                 | EXPRESION_RELACIONAL;
 
             EXPRESION_RELACIONAL.Rule = EXPRESION + OPERADOR_RELACIONAL + EXPRESION
@@ -348,7 +346,9 @@ namespace ChatBot_Service.Logica
                 | falso
                 | cad
                 | car
-                | numero;
+                | numero
+                | identificador + FUNCION_COMPARAR
+                | identificador + corcheteA + EXPRESION + corcheteC + FUNCION_COMPARAR;
             #endregion
         }
     }

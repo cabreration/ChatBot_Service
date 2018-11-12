@@ -56,9 +56,11 @@ namespace ChatBot_Service.Global
             {
                 foreach (Procedimiento meth in Data.procedimientos)
                 {
-                    if (meth.identificador.Equals(identificador))
+                    if (meth.identificador.Equals(identificador) && meth.parametros.Count == 0)
                         acciones = meth;
                 }
+                if (acciones != null)
+                return acciones;
             }
          
             foreach (Procedimiento met in Data.procedimientos) {

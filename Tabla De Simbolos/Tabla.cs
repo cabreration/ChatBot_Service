@@ -207,8 +207,16 @@ namespace ChatBot_Service.Tabla_De_Simbolos
             {
                 foreach (DictionaryEntry item in luke.elementos)
                 {
-                    if (darth.contiene(((Simbolo)item.Value).identificador))
-                        ((Simbolo)(darth.elementos[((Simbolo)item.Value).identificador])).valor = ((Simbolo)item.Value).valor;
+                    try
+                    {
+                        if (darth.contiene(((Simbolo)item.Value).identificador))
+                            ((Simbolo)(darth.elementos[((Simbolo)item.Value).identificador])).valor = ((Simbolo)item.Value).valor;
+                    }
+                    catch (Exception e)
+                    {
+                        if (darth.contiene(((Arreglo)item.Value).identificador))
+                            ((Arreglo)(darth.elementos[((Arreglo)item.Value).identificador])).array = ((Arreglo)item.Value).array;
+                    }
                 }
                 luke = darth;
                 darth = darth.padre;

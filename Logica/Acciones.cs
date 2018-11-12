@@ -349,17 +349,6 @@ namespace ChatBot_Service.Logica
                     }
                 else if (root.ChildNodes.Count == 1)
                     return obtenerValor(root.ChildNodes[0], ambito);
-                else if (root.ChildNodes.Count == 5)
-                {
-                    try
-                    {
-                        return CompareTo2(root, ambito);
-                    }
-                    catch (Exception e)
-                    {
-                        //guardar error semantico
-                    }
-                }
             }
             else if (root.Term.Name.Equals("EXPRESION_RELACIONAL")) {
                 if (root.ChildNodes.Count == 3)
@@ -407,6 +396,17 @@ namespace ChatBot_Service.Logica
                     try
                     {
                         return arregloConNodo(root, ambito);
+                    }
+                    catch (Exception e)
+                    {
+                        //guardar error semantico
+                    }
+                }
+                else if (root.ChildNodes.Count == 5)
+                {
+                    try
+                    {
+                        return CompareTo2(root, ambito);
                     }
                     catch (Exception e)
                     {
@@ -568,17 +568,6 @@ namespace ChatBot_Service.Logica
                     //guardar error semantico
                 }
             }
-            else if (root.ChildNodes[0].Term.Name.Equals("identificador"))
-            {
-                try
-                {
-                    return CompareTo(root, ambito);
-                }
-                catch (Exception e)
-                {
-                    //guardar error semantico
-                }
-            }
 
             return retorno;
         }
@@ -687,7 +676,6 @@ namespace ChatBot_Service.Logica
             return retorno;
         }
 
-        //no esta terminada, faltan llamadas
         public object aritmetica1(ParseTreeNode root, Tabla ambito) {
             object retorno = null;
 
@@ -715,6 +703,14 @@ namespace ChatBot_Service.Logica
                         break;
 
                     case "LLAMADA":
+                        try
+                        {
+                            retorno = llamada(root, ambito);
+                        }
+                        catch (Exception e)
+                        {
+                            //guardar error semantico
+                        }
                         break;
 
                     case "OBTENER_USUARIO":
@@ -767,6 +763,17 @@ namespace ChatBot_Service.Logica
                         arg = ((Simbolo)arg).valor;
 
                     return Calculadora.negativo(arg);
+                }
+                catch (Exception e)
+                {
+                    //guardar error semantico
+                }
+            }
+            else if (root.ChildNodes[0].Term.Name.Equals("identificador"))
+            {
+                try
+                {
+                    return CompareTo(root, ambito);
                 }
                 catch (Exception e)
                 {
@@ -945,7 +952,10 @@ namespace ChatBot_Service.Logica
                 scope.heredar();
             }
 
-            Retorno valor = ejecutarSentencias(procedimiento.root, scope);
+            if (procedimiento.root.ChildNodes.Count == 0)
+                return null;
+
+            Retorno valor = ejecutarSentencias(procedimiento.root.ChildNodes[0], scope);
             if (procedimiento.tipo.Equals("Void") && valor != null)
                 if (!(procedimiento.tipo.Equals(valor.tipo)))
                     throw new Exception("El tipo de retorno esperado no concuerda con el recibido");
@@ -1428,7 +1438,7 @@ namespace ChatBot_Service.Logica
                                 tablaCaso.heredar();
                                 foreach (ParseTreeNode sentencia in caso.ChildNodes[2].ChildNodes)
                                 {
-                                    retorno = ejecutarSentencia(sentencia, tablaCaso);
+                                    retorno = ejecutarSentencia(sentencia.ChildNodes[0], tablaCaso);
                                     ejecutado = true;
                                     if (Data.returner) {
                                         tablaCaso.escalarAmbito();
@@ -1455,7 +1465,7 @@ namespace ChatBot_Service.Logica
                                 tablaCaso.heredar();
                                 foreach (ParseTreeNode sentencia in caso.ChildNodes[2].ChildNodes)
                                 {
-                                    retorno = ejecutarSentencia(sentencia, tablaCaso);
+                                    retorno = ejecutarSentencia(sentencia.ChildNodes[0], tablaCaso);
                                     ejecutado = true;
                                     if (Data.returner)
                                     {
@@ -1483,7 +1493,7 @@ namespace ChatBot_Service.Logica
                                 tablaCaso.heredar();
                                 foreach (ParseTreeNode sentencia in caso.ChildNodes[2].ChildNodes)
                                 {
-                                    retorno = ejecutarSentencia(sentencia, tablaCaso);
+                                    retorno = ejecutarSentencia(sentencia.ChildNodes[0], tablaCaso);
                                     ejecutado = true;
                                     if (Data.returner)
                                     {
@@ -1510,7 +1520,7 @@ namespace ChatBot_Service.Logica
                     if (def.ChildNodes.Count == 2) {
                         foreach (ParseTreeNode sentencia in def.ChildNodes[1].ChildNodes)
                         {
-                            retorno = ejecutarSentencia(sentencia, tablaCaso);
+                            retorno = ejecutarSentencia(sentencia.ChildNodes[0], tablaCaso);
                             if (Data.returner)
                             {
                                 tablaCaso.escalarAmbito();
@@ -1581,26 +1591,41 @@ namespace ChatBot_Service.Logica
                 case "IF":
                     Tabla tablaIf = new Tabla(ambito);
                     tablaIf.heredar();
+                    retorno = If_Else(sentencia, tablaIf);
+                    if (Data.returner)
+                        return retorno;
                     break;
 
                 case "FOR":
                     Tabla tablaFor = new Tabla(ambito);
                     tablaFor.heredar();
+                    retorno = For(sentencia, tablaFor);
+                    if (Data.returner)
+                        return retorno;
                     break;
 
                 case "SWITCH":
                     Tabla tablaSwitch = new Tabla(ambito);
                     tablaSwitch.heredar();
+                    retorno = Switch(sentencia, tablaSwitch);
+                    if (Data.returner)
+                        return retorno;
                     break;
 
                 case "WHILE":
                     Tabla tablaWhile = new Tabla(ambito);
                     tablaWhile.heredar();
+                    retorno = While(sentencia, tablaWhile);
+                    if (Data.returner)
+                        return retorno;
                     break;
 
                 case "DO_WHILE":
                     Tabla tablaDo = new Tabla(ambito);
                     tablaDo.heredar();
+                    retorno = Do_While(sentencia, tablaDo);
+                    if (Data.returner)
+                        return retorno;
                     break;
 
                 case "FUNCION_PRINT":
@@ -1633,7 +1658,7 @@ namespace ChatBot_Service.Logica
                     return retorno;
 
                 case "Break":
-                    Data.returner = true;
+                    Data.breaker = true;
                     break;              
             }
             return retorno;
@@ -1647,6 +1672,12 @@ namespace ChatBot_Service.Logica
             if (valor.ChildNodes.Count == 2)
             {
                 object val = obtenerValor(valor.ChildNodes[1], ambito);
+
+                if (val is Simbolo)
+                    val = ((Simbolo)val).valor;
+
+                if (val is Arreglo)
+                    throw new Exception("No se permite retornar arreglos");
 
                 if (val is string)
                     retorno = new Retorno("String", (string)val);
@@ -1752,7 +1783,68 @@ namespace ChatBot_Service.Logica
                     break;
 
                 case "Void":
-                    if (returner !=  null || !(returner.tipo.Equals("Void")))
+                    if (returner !=  null && !(returner.tipo.Equals("Void")))
+                        throw new Exception("El metodo Main no deberia haber recibido ningun tipo de retorno");
+                    break;
+            }
+
+            Data.returner = false;
+            Data.breaker = false;
+
+            if (returner != null && !returner.tipo.Equals("Void"))
+                return returner.valor;
+            else return null;
+        }
+
+        public object ejecutarMain()
+        {
+            object retorno = null;
+            if (Data.main == null)
+                return null;
+
+            string tipo = Data.main.tipo;
+            if (Data.main.root.ChildNodes.Count == 0)
+                return null;
+
+            ParseTreeNode sentencias = Data.main.root.ChildNodes[0];
+            Tabla ambitoMain = new Tabla(Data.ambitoGlobal);
+            ambitoMain.heredar();
+            Retorno returner = ejecutarSentencias(sentencias, ambitoMain);
+
+            switch (tipo)
+            {
+                case "String":
+                    if (!(returner.tipo.Equals("String")))
+                        throw new Exception("El tipo de retorno no concuerda con el tipo declarado en el metodo Main. " +
+                            "Declarado: String, Recibido: " + returner.tipo);
+                    break;
+
+                case "Int":
+                    if (!(returner.tipo.Equals("Int")))
+                        throw new Exception("El tipo de retorno no concuerda con el tipo declarado en el metodo Main. " +
+                            "Declarado: Int, Recibido: " + returner.tipo);
+                    break;
+
+                case "Double":
+                    if (!(returner.tipo.Equals("Double")))
+                        throw new Exception("El tipo de retorno no concuerda con el tipo declarado en el metodo Main. " +
+                            "Declarado: Double, Recibido: " + returner.tipo);
+                    break;
+
+                case "Bool":
+                    if (!(returner.tipo.Equals("Bool")))
+                        throw new Exception("El tipo de retorno no concuerda con el tipo declarado en el metodo Main. " +
+                            "Declarado: Bool, Recibido: " + returner.tipo);
+                    break;
+
+                case "Char":
+                    if (!(returner.tipo.Equals("Char")))
+                        throw new Exception("El tipo de retorno no concuerda con el tipo declarado en el metodo Main. " +
+                            "Declarado: Char, Recibido: " + returner.tipo);
+                    break;
+
+                case "Void":
+                    if (returner != null && !(returner.tipo.Equals("Void")))
                         throw new Exception("El metodo Main no deberia haber recibido ningun tipo de retorno");
                     break;
             }
